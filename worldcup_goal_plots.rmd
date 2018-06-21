@@ -379,9 +379,16 @@ ani <- ggplot(pass_data) +
   annotate("text", x = 69, y = 65, family = "Dusha V5",
            label = "After a poor corner kick clearance\n from Saudi Arabia, Golovin picks up the loose ball, \n exchanges a give-and-go pass with Zhirkov\n before finding Gazinsky with a beautiful cross!")
 
-gganimate(ani, "ani.gif")
+gganimate(ani, "ani.gif", title_frame = FALSE)
 
 ```
+
+A bit choppy, but the ball is in motion!
+
+Let's fix this choppiness by interpolating our x,y coordinates to create a smoother animation between the passing points. 
+
+
+
 
 Now use tweenr!
 
@@ -441,7 +448,11 @@ gganimate(gazinsky_goal,
 ```
 
 
-
+- reorder geom_emoji to bottom so soccer ball emoji can appaer above labels...
+- shift coordinates to make ball look like being dribbled by the player labels
+- track player runs? necessary? maybe just as extra step.
+- add Saudi player clearance as Green Dot
+- try with tween_elements() again........
 
 
 
@@ -456,6 +467,19 @@ Recreate famous World Cup goals of the past? (Maradona vs. England?)
 
 
 
+```{r}
+pass_data <- data.frame(x = c(100, 94, 82,  84, 77, 76, 94, 99.2),
+                        y = c(0,   35, 33.5, 6, 13, 19, 60, 47.5),
+                        time = c(1, 2, 3, 4, 5, 6, 7, 8))
+
+data <- data.frame(x = 1, y = 1)
+
+ggplot(data) +
+  annotate_pitch() +
+  theme_pitch() +
+  coord_flip(xlim = c(49, 101),
+             ylim = c(-1, 101))
+```
 
 
 

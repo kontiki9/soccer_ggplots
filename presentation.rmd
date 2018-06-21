@@ -1,0 +1,45 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "June 22, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+Introduction
+
+Introduction to World Cup
+
+
+Show various viz by others
+
+Talk about DATA for soccer/football sources: WhoScored, Opta, TransferMarkt
+
+Rvest, RSelenium
+
+
+"Now this is where the fun begins!" gif
+
+ggsoccer + ggplot2
+
+ggimage::geom_emoji, geom_flag
+
+VIZ
+
+gganimate
+
+tweenr
+
+
+#TidyTuesday
+
+
+Conclusion
+
+
