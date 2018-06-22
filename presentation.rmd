@@ -32,6 +32,11 @@ ggimage::geom_emoji, geom_flag
 
 VIZ
 
+- static goal recreations
+- shots on goal 
+- formation builder?
+
+
 gganimate
 
 tweenr
@@ -39,6 +44,11 @@ tweenr
 
 #TidyTuesday
 
+- "Don't let language be a barrier to being involved in the R Community!"
+- "Speak through your code!" >>> not ALL things but some like visualizations
+- for explaining models and stuff, yes you WILL need better command of the English language...
+- Recommend TidyTuesday as a way to get involved without needing to know as much English
+--> "A picture is worth a thousand words!"
 
 Conclusion
 

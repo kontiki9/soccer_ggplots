@@ -35,7 +35,8 @@ You can also grab images from URLs and
 First Goal!
 
 ```{r first goal}
-library(tidyverse)
+library(ggplot2)
+library(dplyr)
 library(ggsoccer)
 library(ggimage)
 library(extrafont)
@@ -338,7 +339,8 @@ make function for set formations
 
 
 ```{r animate}
-library(tidyverse)
+library(ggplot2)
+library(dplyr)
 library(ggsoccer)
 library(ggimage)
 library(extrafont)
@@ -346,32 +348,83 @@ library(gganimate)
 library(tweenr)
 # loadfonts()
 
-#                              2   1  
-pass_data <- data.frame(x = c(100, 94, 82,  84, 77, 76, 94, 99.2),
-                        y = c(0,   35, 33.5, 6, 13, 19, 60, 47.5),
-                        time = c(1, 2, 3, 4, 5, 6, 7, 8))
+# data
+pass_data <- data.frame(
+  x = c(100, 94, 82, 82.5,  84, 77, 76, 94, 99.2),# pass balls
+  y = c(0,   35, 31, 25,  6, 13, 19, 60, 47.5),
+  x2 = c(78, 78, 78, 73, 73, 73, 73, 73, 73),     # golovin movement
+  y2 = c(26, 25, 23, 9, 9, 9, 9, 9, 9),
+  label = "Golovin",
+  time = c(1, 2, 3, 4, 5, 6, 7, 8, 9))
 
+label_data <- data.frame(
+  x = c(94, 78, 73, 98, 82),
+  y = c(60, 26, 9, 0, 3),
+  time = c(1, 2, 3, 1, 3),
+  label = c("Gazinsky", "Golovin", "Golovin", "Zhirkov", "Zhirkov"),
+  hjust = c(-0.1, -0.05, -0.1, 0, 0),
+  vjust = c(0, 0, 0, -0.3, -0.3)
+)
+
+
+  geom_label(
+    data = label_data,
+    aes(x = x, y = y, 
+        frame = time,
+        label = label, 
+        hjust = hjust, vjust = vjust)) 
+
+
+golovin_movement <- data.frame(
+  x = c(78, 78, 78, 73, 73, 73, 73, 73, 73),
+  y = c(26, 25, 23, 9, 9, 9, 9, 9, 9),
+  label = "Golovin",
+  time = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
+)
+
+# 1. gazinsky header, 2. golovin movement, 3. zhirkov movement:
+segment_data <- data.frame(
+  x = c(83, 98),
+  y = c(24.25, 2),
+  xend = c(77, 88),
+  yend = c(21, 6),
+  linetype = c("dashed", "dashed"),
+  color = c("darkgreen", "darkgreen"),
+  size = c(1.2, 1.25)
+)
+
+saudi_data <- data.frame(
+  x = c(95),
+  y = c(35)
+)
 
 ani <- ggplot(pass_data) +
   annotate_pitch() +
   theme_pitch() +
   coord_flip(xlim = c(49, 101),
              ylim = c(-1, 101)) +
-  ggimage::geom_emoji(aes(x = x, y = y, frame = time), image = "26bd", size = 0.035) +
-  geom_segment(data = goal_data, 
-               aes(x = x, y = y, xend = x2, yend = y2), 
-               linetype = "dashed", color = "red", size = 0.85) +
-  geom_segment(data = golovin_data,
-               aes(x = x, y = y, xend = x2, yend = y2
-                   ), linetype = "dashed", color = "darkgreen", size = 1.2) +
-  geom_segment(data = zhirkov_data,
-               aes(x = x, y = y, xend = x2, yend = y2
-                   ), linetype = "dashed", color = "darkgreen", size = 1.25) +
-  geom_label(aes(x = 94, y = 60, label = "Gazinsky"), hjust = -0.1) +
-  geom_label(aes(x = 83, y = 23, label = "Golovin"), hjust = -0.05) +
-  geom_label(aes(x = 75, y = 11, label = "Golovin"), hjust = -0.1) +
-  geom_label(aes(x = 98, y = 0, label = "Zhirkov"), vjust = -0.3) +
-  geom_label(aes(x = 84, y = 6, label = "Zhirkov"), vjust = -0.3) +
+  geom_segment(data = segment_data, 
+               aes(x = x, y = y, 
+                   xend = xend, yend = yend),
+               size = segment_data$size,
+               color = segment_data$color,
+               linetype = c("dashed", "dashed")) +
+  geom_label(
+    data = golovin_movement,
+    aes(x = x, y = y,
+        frame = time,
+        label = label)) +
+#+
+  geom_point(
+    data = saudi_data,
+    aes(x = x, y = y),
+    color = "darkgreen",
+    size = 5) +
+  ggimage::geom_emoji(
+    aes(x = x, y = y, 
+        frame = time), 
+    image = "26bd", 
+    size = 0.035) +
   theme(text = element_text(family = "Dusha V5")) +
   ggtitle(label = "Russia (5) vs. (0) Saudi Arabia", 
           subtitle = "First goal, Yuri Gazinsky (12th Minute)") +
@@ -407,28 +460,25 @@ gazinsky_goal <- pass_tween %>%
   theme_pitch() +
   coord_flip(xlim = c(49, 101),
              ylim = c(-1, 101)) +
+  geom_segment(data = segment_data, 
+               aes(x = x, y = y, 
+                   xend = xend, yend = yend),
+               size = segment_data$size,
+               color = segment_data$color,
+               linetype = c("dashed", "dashed")) +
+  geom_label(
+    data = label_data,
+    aes(x = x, y = y, 
+        label = label, 
+        hjust = hjust, vjust = vjust)) +
+  geom_point(
+    data = saudi_data,
+    aes(x = x, y = y),
+    color = "darkgreen",
+    size = 5) +
   ggimage::geom_emoji(
     aes(x = x, y = y, frame = time), 
     image = "26bd", size = 0.035) +
-  geom_label(
-    aes(x = 94, y = 60, label = "Gazinsky"), hjust = -0.1) +
-  geom_label(
-    aes(x = 83, y = 23, label = "Golovin"), hjust = -0.05) +
-  geom_label(
-    aes(x = 75, y = 11, label = "Golovin"), hjust = -0.1) +
-  geom_label(
-    aes(x = 98, y = 0, label = "Zhirkov"), vjust = -0.3) +
-  geom_label(
-    aes(x = 84, y = 6, label = "Zhirkov"), vjust = -0.3) +
-  geom_segment(data = goal_data, 
-               aes(x = x, y = y, xend = x2, yend = y2), 
-               linetype = "dashed", color = "red", size = 0.85) +
-  geom_segment(data = golovin_data,
-               aes(x = x, y = y, xend = x2, yend = y2
-                   ), linetype = "dashed", color = "darkgreen", size = 1.2) +
-  geom_segment(data = zhirkov_data,
-               aes(x = x, y = y, xend = x2, yend = y2
-                   ), linetype = "dashed", color = "darkgreen", size = 1.25) +
   theme(text = element_text(family = "Dusha V5")) +
   ggtitle(label = "Russia (5) vs. (0) Saudi Arabia", 
           subtitle = "First goal, Yuri Gazinsky (12th Minute)") +
@@ -442,13 +492,12 @@ gazinsky_goal <- pass_tween %>%
 
 gganimate(gazinsky_goal, 
           ani.width = 800, ani.height = 500, 
-          title_frame = FALSE, interval = 0.05, 
+          title_frame = FALSE, interval = 0.25, 
           "gazinsky_goal.gif")
 
 ```
 
 
-- reorder geom_emoji to bottom so soccer ball emoji can appaer above labels...
 - shift coordinates to make ball look like being dribbled by the player labels
 - track player runs? necessary? maybe just as extra step.
 - add Saudi player clearance as Green Dot
@@ -456,6 +505,40 @@ gganimate(gazinsky_goal,
 
 
 
+```{r}
+golovin_movement_list <- map(seq(nrow(golovin_movement)),
+                      ~golovin_movement[c(seq(.x), rep(.x, nrow(golovin_movement) - .x)), ])
+  
+golovin_tween <- golovin_movement_list %>% 
+  tween_states(tweenlength = 2, statelength = 1.5, ease = "linear", nframes = 200)
+
+
+
+
+gazinsky_goal <- ggplot(pass_data) +
+  annotate_pitch() +
+  theme_pitch() +
+  coord_flip(xlim = c(49, 101),
+             ylim = c(-1, 101)) +
+  geom_segment(data = segment_data, 
+               aes(x = x, y = y, 
+                   xend = xend, yend = yend),
+               size = segment_data$size,
+               color = segment_data$color,
+               linetype = c("dashed", "dashed")) +
+  geom_label(
+    aes(x = x2, y = y2,
+        frame = time,
+        label = label)) +
+  ggimage::geom_emoji(
+    aes(x = x, y = y, frame = time), 
+    image = "26bd", size = 0.035)
+
+gganimate(gazinsky_goal, 
+          ani.width = 800, ani.height = 500, 
+          title_frame = FALSE, interval = 0.25, 
+          "gazinsky_goal.gif")
+```
 
 
 
