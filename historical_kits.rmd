@@ -1,0 +1,157 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "June 24, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Uniform animation
+https://guyabel.com/post/football-kits/
+
+ex. Liverpool 
+
+
+```{r}
+library(rvest)
+library(dplyr)
+library(purrr)
+library(stringr)
+library(magick)
+
+url <- "http://www.historicalkits.co.uk/Liverpool/Liverpool.htm"
+
+#kits
+#div.float:nth-child(2)
+#div.float:nth-child(3) > img:nth-child(2)
+#div.float:nth-child(2)
+#div.float:nth-child(2) > img:nth-child(2)
+#div.float:nth-child(67)
+#div.float:nth-child(2) > img:nth-child(2)
+#div.float:nth-child(2) > img:nth-child(2)
+#.float p , .float img
+#/html/body/div[2]/div[4]/div[2]/div[2]/div[3]/img
+#div.float:nth-child(4) > img:nth-child(1)
+#html body div#master div#bodywrap div#maincol div.content div.float img
+
+url %>% 
+  read_html() %>% 
+  html_nodes(".float p , .float img") %>% 
+  html_attr("src")
+
+
+url %>% 
+  read_html() %>% 
+  html_nodes(".float img") %>% 
+  html_attr("src")
+
+url %>% 
+  read_html() %>% 
+  html_nodes(".float p , .float img") %>% 
+  html_text() %>% 
+  c(., NA) %>% 
+  .[-1]
+
+
+
+scrape_img_url <- function(html){
+  html %>%
+    html_nodes(".float p , .float img") %>%
+    html_attr("src") %>%
+    tbl_df() %>%
+    set_names("img_url") %>%
+    mutate(label = html %>% 
+             html_nodes(".float p , .float img") %>%
+             html_text() %>%
+             c(., NA) %>%
+             .[-1])
+}
+
+
+d1 <- read_html("http://www.historicalkits.co.uk/Liverpool/Liverpool.htm") %>%
+  scrape_img_url() %>%
+  filter(str_detect(string = img_url, pattern = "/Liverpool"),
+         !str_detect(string = img_url, pattern = "unknown")) %>%
+  mutate(
+    label = str_replace_all(string = label,
+                            pattern = "[:alpha:]|\\s", 
+                            replacement = "")
+  )
+# some wrong labels... 
+
+
+
+# 2000s
+
+d2 <- d1 %>% 
+  slice(51:58)
+
+# download img
+kits <- d2 %>% 
+  mutate(img_url = paste0("http://www.historicalkits.co.uk", img_url)) %>% 
+  select(img_url) %>% 
+  map(image_read) %>% 
+  set_names("img")
+
+# morph
+
+kits_ani <- image_morph(c(kits$img[1], kits$img[1]), frames = 4)
+kits_ani
+
+for (i in 2:length(kits$img)) {
+  
+  kits_morph0 <- image_morph(c(kits$img[i - 1], kits$img[i]), frames = 4)
+  
+  kits_morph1 <- image_morph(c(kits$img[i], kits$img[i]), frames = 4)
+  
+  kits_ani <- c(kits_ani, kits_morph0)
+  
+  kits_ani <- c(kits_ani, kits_morph1)
+  
+}
+
+# animation
+
+kits_ani %>% 
+  image_animate(fps = 10) %>% 
+  image_write(path = "liv_2000s.gif")
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
