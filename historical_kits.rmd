@@ -87,7 +87,7 @@ d1 <- read_html("http://www.historicalkits.co.uk/Liverpool/Liverpool.htm") %>%
 # 2000s
 
 d2 <- d1 %>% 
-  slice(51:58)
+  slice(46:58)
 
 # download img
 kits <- d2 %>% 
@@ -100,6 +100,25 @@ kits <- d2 %>%
 
 kits_ani <- image_morph(c(kits$img[1], kits$img[1]), frames = 4)
 kits_ani
+
+
+
+seq_along(kits$img)
+2:length(kits$img)
+
+seq_along(kits$img) - 1
+
+# save vector of seq_along() 
+# map image_morph with vectors of kits$img
+
+kits_len <- seq_along(kits$img)
+
+2:length(kits$img)
+
+
+kits %>% 
+  map(kits_len, function(x) image_morph(.$img - 1, .$img), frame = 5)
+
 
 for (i in 2:length(kits$img)) {
   
@@ -119,11 +138,49 @@ kits_ani %>%
   image_animate(fps = 10) %>% 
   image_write(path = "liv_2000s.gif")
 
-
-
 ```
 
 
+## Japan World Cup uniforms
+
+```{r}
+library(magick)
+
+japan_kits <- list.files(path = "./japan_kits/", pattern = "*.gif", full.names = TRUE) %>% 
+  map(image_read) %>% 
+  image_join()
+
+# no join
+japan_kits2 <- list.files(path = "./japan_kits/", pattern = "*.gif", full.names = TRUE) %>% 
+  map(image_read) 
+
+japan_kits2 <- japan_kits2 %>% set_names(rep("img", 6))
+
+japan_kits <- list(img = japan_kits) # turn into list with "img" as name
+# subset [1] to [6] in this. so can image_morph() call each and previous
+
+japan_seq2 <- seq_along(japan_kits2)
+
+
+#
+japan_ani <- image_morph(c(japan_kits$img[1], japan_kits$img[1]), frame = 10)
+
+kits_morph_j0 <- 2:6 %>% 
+  map(~ image_morph(c(japan_kits$img[.x-1], japan_kits$img[.x]), frames = 10)) %>% 
+  image_join()
+
+kits_morph_j1 <- 2:6 %>% 
+  map(~ image_morph(c(japan_kits$img[.x], japan_kits$img[.x]), frames = 10)) %>% 
+  image_join()
+
+jkits_ani <- c(japan_ani, kits_morph_j0)
+# jkits_ani <- c(jkits_ani, kits_morph_j1)  #  need to integrate PAUSE with morph anims
+
+jkits_ani %>% 
+  image_animate(fps = 10) %>% 
+  image_write(path = "japan_kit.gif")
+
+```
 
 
 
