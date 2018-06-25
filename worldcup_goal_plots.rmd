@@ -305,9 +305,118 @@ g <- ggplot(osako_gol) +
 ggsave(g, filename = "osako_winner.png", height = 5)
 ```
 
+## Animated version:
+
+```{r osako anim}
+library(ggplot2)
+library(dplyr)
+library(ggsoccer)
+library(extrafont)
+library(emoGG)
+library(ggimage)
+library(gganimate)
 
 
-VAR Decisions
+ball_data <- data.frame(x = c(99, 94, 100),
+                        y = c(0.3, 47, 55.5),
+                        time = c(1, 2, 3))
+
+player_label <- data.frame(x = c(92, 99), 
+                           y = c(49, 2))
+
+wc_logo <- data.frame(x = 107,
+                       y = 85) %>% 
+  mutate(image = "https://upload.wikimedia.org/wikipedia/en/thumb/6/67/2018_FIFA_World_Cup.svg/1200px-2018_FIFA_World_Cup.svg.png")
+
+
+g <- ggplot(ball_data) +
+  annotate_pitch() +
+  theme_pitch() +
+  theme(text = element_text(family = "Dusha V5")) +
+  coord_flip(xlim = c(55, 112),
+             ylim = c(-1, 101)) +
+  geom_label(data = player_label, 
+             aes(x = x, y = y),
+             label = c("Osako", "Honda"), family = "Dusha V5") +
+  geom_point(aes(x = 98, y = 50), size = 3, color = "green") +
+  geom_text(aes(x = 99.7, y = 50), size = 5, label = "???", family = "Dusha V5") +
+  annotate(geom = "text", family = "Dusha V5", 
+           hjust = c(0.5, 0.5, 0.5, 0.5, 0.5),
+           size = c(6.5, 4.5, 4, 3.5, 3),
+           label = c("Japan             (2) vs. Colombia             (1)",
+                     "Kagawa (PEN 6'), Quintero (39'), Osako (73')",
+                     "Japan press their man advantage, substitute Honda\ndelivers a delicious corner kick for Osako to (somehow) tower over\nColombia's defense and flick a header into the far corner!",
+                     "Bonus: Ospina looking confused and\ndoing a lil' two-step-or-god-knows-what.",
+                     "by Ryo Nakagawara (@R_by_Ryo)"),
+           x = c(110, 105, 70, 92, 53), 
+           y = c(30, 30, 45, 81, 85)) +
+  ggimage::geom_flag(aes(image = "JP"),       # Japan Flag
+            x = 110, y = 13, size = 0.08) +
+  ggimage::geom_flag(aes(image = "CO"),       # Colombia Flag
+            x = 110, y = 53, size = 0.08) +
+  ggimage::geom_emoji(aes(x = x, 
+                          y = y,
+                          frame = time),
+             image = "26bd", size = 0.035) +
+  geom_image(data = wc_logo,
+             aes(x = x, y = y,
+                 image = image), size = 0.17) +
+  theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
+
+g
+
+gganimate(g, "osako_ani.gif") 
+
+# TWEEN
+
+library(purrr)
+library(tweenr)
+
+ball_list <- map(seq(nrow(ball_data)),
+                      ~ ball_data[c(seq(.x), rep(.x, nrow(ball_data) - .x)), ])
+  
+osako_tween <- ball_list %>% 
+  tween_states(tweenlength = 2, statelength = 1.25, ease = "linear", nframes = 200)
+
+g2 <- ggplot(osako_tween) +
+  annotate_pitch() +
+  theme_pitch() +
+  theme(text = element_text(family = "Dusha V5")) +
+  coord_flip(xlim = c(55, 112),
+             ylim = c(-1, 101)) +
+  geom_label(data = player_label, 
+             aes(x = x, y = y),
+             label = c("Osako", "Honda"), family = "Dusha V5") +
+  geom_point(aes(x = 98, y = 50), size = 3, color = "green") +
+  annotate(geom = "text", family = "Dusha V5", 
+           hjust = c(0.5, 0.5, 0.5, 0.5, 0.5),
+           size = c(6.5, 4.5, 4, 3.5, 3),
+           label = c("Japan             (2) vs. Colombia             (1)",
+                     "Kagawa (PEN 6'), Quintero (39'), Osako (73')",
+                     "Japan press their man advantage, substitute Honda\ndelivers a delicious corner kick for Osako to (somehow) tower over\nColombia's defense and flick a header into the far corner!",
+                     "Bonus: Ospina looking confused and\ndoing a lil' two-step-or-god-knows-what.",
+                     "by Ryo Nakagawara (@R_by_Ryo)"),
+           x = c(110, 105, 70, 92, 53), 
+           y = c(30, 30, 45, 81, 85)) +
+  ggimage::geom_emoji(aes(x = x, 
+                          y = y,
+                          frame = .frame),
+             image = "26bd", size = 0.035) +
+  theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
+
+g2
+
+gganimate(g2, 
+          ani.width = 800, ani.height = 500, 
+          interval = 0.25,
+          "osako_tween.gif") 
+
+# multiple balls appearing after every pause...??????
+
+```
+
+
+## VAR Decisions
 
 ```{r var }
 
@@ -316,7 +425,7 @@ VAR Decisions
 
 
 
-Shots on Goal: On + Off Target
+## Shots on Goal: On + Off Target
 
 ```{r shots on goal}
 
@@ -337,8 +446,20 @@ make function for set formations
 
 ### Animate!
 
+```{r}
+label_data <- data.frame(
+  x = c(94, 78, 73, 98, 82),
+  y = c(60, 26, 9, 0, 3),
+  time = c(1, 2, 3, 1, 3),
+  label = c("Gazinsky", "Golovin", "Golovin", "Zhirkov", "Zhirkov"),
+  hjust = c(-0.1, -0.05, -0.1, 0, 0),
+  vjust = c(0, 0, 0, -0.3, -0.3)
+)
+```
 
-```{r animate}
+
+
+```{r ani data}
 library(ggplot2)
 library(dplyr)
 library(ggsoccer)
@@ -350,39 +471,25 @@ library(tweenr)
 
 # data
 pass_data <- data.frame(
-  x = c(100, 94, 82, 82.5,  84, 77, 76, 94, 99.2),# pass balls
-  y = c(0,   35, 31, 25,  6, 13, 19, 60, 47.5),
-  x2 = c(78, 78, 78, 73, 73, 73, 73, 73, 73),     # golovin movement
-  y2 = c(26, 25, 23, 9, 9, 9, 9, 9, 9),
-  label = "Golovin",
+  x = c(100, 94, 82, 82.5,  84, 77, 76, 94, 99.2),       # pass balls
+  y = c(0,   35, 31, 25,     6, 13, 19, 60, 47.5),
+  label = "ball movement",
   time = c(1, 2, 3, 4, 5, 6, 7, 8, 9))
 
-label_data <- data.frame(
-  x = c(94, 78, 73, 98, 82),
-  y = c(60, 26, 9, 0, 3),
-  time = c(1, 2, 3, 1, 3),
-  label = c("Gazinsky", "Golovin", "Golovin", "Zhirkov", "Zhirkov"),
-  hjust = c(-0.1, -0.05, -0.1, 0, 0),
-  vjust = c(0, 0, 0, -0.3, -0.3)
+golovin_movement <- data.frame(
+  x = c(98, 80, 80, 80, 75, 74, 73, 73, 73),
+  y = c( 0, 30, 25, 20,  10, 9, 15, 20, 20),
+  label = "Golovin",
+  time = c(1, 2, 3,  4,  5,  6,  7,  8,  9)
 )
 
-
-  geom_label(
-    data = label_data,
-    aes(x = x, y = y, 
-        frame = time,
-        label = label, 
-        hjust = hjust, vjust = vjust)) 
-
-
-golovin_movement <- data.frame(
-  x = c(78, 78, 78, 73, 73, 73, 73, 73, 73),
-  y = c(26, 25, 23, 9, 9, 9, 9, 9, 9),
-  label = "Golovin",
+zhirkov_movement <- data.frame(
+  x = c(97, 90, 82, 82, 82, 82, 82, 82, 82),
+  y = c( 0,  2,  3,  3,  3,  3,  3,  3,  3),
+  label = "Zhirkov",
   time = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
 )
 
-# 1. gazinsky header, 2. golovin movement, 3. zhirkov movement:
 segment_data <- data.frame(
   x = c(83, 98),
   y = c(24.25, 2),
@@ -398,6 +505,46 @@ saudi_data <- data.frame(
   y = c(35)
 )
 
+data <- tribble(
+  ~x,  ~y,  ~label, ~time,
+  100,  0,  "ball",     1,
+   98,  0, "Golovin",   1,
+   98,  0, "Zhirkov",   1,
+   94, 35, "ball",      2,
+   80, 30, "Golovin",   2,
+   90,  2, "Zhirkov",   2,
+   82, 31, "ball",      3,
+   80, 25, "Golovin",   3,
+   82,  3, "Zhirkov",   3, 
+   82.5, 25, "ball",    4,
+   80, 20, "Golovin",   4, 
+   82,  3, "Zhirkov",   4,
+   84,  6, "ball",      5, 
+   75, 10, "Golovin",   5,
+   82,  3, "Zhirkov",   5, 
+   77, 13, "ball",      6,
+   74,  9, "Golovin",   6,
+   82,  3, "Zhirkov",   6,
+   76, 19, "ball",      7,
+   73, 15, "Golovin",   7,
+   82,  3, "Zhirkov",   7,
+   94, 60, "ball",      8,
+   73, 20, "Golovin",   8,
+   82,  3, "Zhirkov",   8,
+   99.2, 47.5, "ball",  9,
+   73, 20, "Golovin",   9,
+   82,  3, "Zhirkov",   9
+  
+)
+# arrange by time!
+# instead of string label, give numerical ID value? but the IDs themselves will get "interpolated".... wtf
+
+data2 <- data %>% select(-label)
+
+```
+
+
+```{r ani plot}
 ani <- ggplot(pass_data) +
   annotate_pitch() +
   theme_pitch() +
@@ -414,7 +561,11 @@ ani <- ggplot(pass_data) +
     aes(x = x, y = y,
         frame = time,
         label = label)) +
-#+
+  geom_label(
+    data = zhirkov_movement,
+    aes(x = x, y = y,
+        frame = time,
+        label = label)) +
   geom_point(
     data = saudi_data,
     aes(x = x, y = y),
@@ -432,7 +583,7 @@ ani <- ggplot(pass_data) +
   annotate("text", x = 69, y = 65, family = "Dusha V5",
            label = "After a poor corner kick clearance\n from Saudi Arabia, Golovin picks up the loose ball, \n exchanges a give-and-go pass with Zhirkov\n before finding Gazinsky with a beautiful cross!")
 
-gganimate(ani, "ani.gif", title_frame = FALSE)
+gganimate(ani, "ani.gif")  # use frame to check positionings...
 
 ```
 
@@ -445,16 +596,28 @@ Let's fix this choppiness by interpolating our x,y coordinates to create a smoot
 
 Now use tweenr!
 
-```{r}
+```{r tween data}
 library(purrr)
 
-pass_data_list <- map(seq(nrow(pass_data)),
-                      ~pass_data[c(seq(.x), rep(.x, nrow(pass_data) - .x)), ])
+# all tween
+data_list <- map(seq(nrow(data)),
+                      ~ data[c(seq(.x), rep(.x, nrow(data) - .x)), ])
   
-pass_tween <- pass_data_list %>% 
-  tween_states(tweenlength = 2, statelength = 1.5, ease = "linear", nframes = 200)
+data_tween <- data_list %>% 
+  tween_states(tweenlength = 2, statelength = 1.25, ease = "linear", nframes = 200)    # Error in col2rgb(d) : invalid color name 'ball'
 
-gazinsky_goal <- pass_tween %>% 
+
+# sans labels col
+data_list <- map(seq(nrow(data2)),
+                      ~ data2[c(seq(.x), rep(.x, nrow(data2) - .x)), ])
+  
+data_tween <- data_list %>% 
+  tween_states(tweenlength = 2, statelength = 1.25, ease = "linear", nframes = 200)
+
+
+# plot
+
+gazinsky_goal <- data_tween %>% 
   ggplot() +
   annotate_pitch() +
   theme_pitch() +
@@ -466,18 +629,13 @@ gazinsky_goal <- pass_tween %>%
                size = segment_data$size,
                color = segment_data$color,
                linetype = c("dashed", "dashed")) +
-  geom_label(
-    data = label_data,
-    aes(x = x, y = y, 
-        label = label, 
-        hjust = hjust, vjust = vjust)) +
   geom_point(
     data = saudi_data,
     aes(x = x, y = y),
     color = "darkgreen",
     size = 5) +
   ggimage::geom_emoji(
-    aes(x = x, y = y, frame = time), 
+    aes(x = x, y = y, frame = .frame),    # change frame to .frame or it'll still move by time only -_-
     image = "26bd", size = 0.035) +
   theme(text = element_text(family = "Dusha V5")) +
   ggtitle(label = "Russia (5) vs. (0) Saudi Arabia", 
@@ -492,7 +650,7 @@ gazinsky_goal <- pass_tween %>%
 
 gganimate(gazinsky_goal, 
           ani.width = 800, ani.height = 500, 
-          title_frame = FALSE, interval = 0.25, 
+          interval = 0.25, 
           "gazinsky_goal.gif")
 
 ```
@@ -565,5 +723,24 @@ ggplot(data) +
 ```
 
 
+## Japan's Offside Trap!
 
+```{r}
+
+```
+
+
+
+
++ the meme generator with R
+
+```{r meme}
+library(memery)
+img <- ("https://imgflip.com/s/meme/Roll-Safe-Think-About-It.jpg")
+
+meme_labs <- c("you can't lose the aerial battle", "if you set an offside trap")
+
+meme(img, meme_labs, "offside_meme.png")
+
+```
 
