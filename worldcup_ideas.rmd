@@ -1,0 +1,33 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "June 23, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+- home field / continent advantage? 
+
+
+
+- players playing abroad %
+- top % leagues
+
+- avg. caps per position :: where rely on young? where rely on old?
+- differences across teams / confederations?
+----- world cup winners characteristics???  by confederation / club teams
+
+- world cup uniforms/logo animation
+
+
+- rtweet worldcup???
+
+
+
+
+- fifa world cup audience report

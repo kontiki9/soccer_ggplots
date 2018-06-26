@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Recreate & Animate Your Favorite World Cup Goals!
 
+After posting a couple of my World Cup viz on Twitter, I thought I'll collate some of them into a blog post!
+
 
 
 Let's look at some of the packages we will use!
@@ -27,10 +29,17 @@ You can also grab images from URLs and
 ```
 
 
+The only problem with doing this is manually creating the data points. This is more a problem of access rather than availability as sports analytics firms, most notably Opta, generate a huge amount of data for every player in every match, however it is not easy for a regular dude like me to buy it. 
 
+Some people have managed to create some nice heatmaps by scraping WhoScored.com and other sites (that create their viz from purchased data from Opta) but that was a bit of my expertise so I resorted to creating the coordinate positions by hand. Thankfully, due to the plotting system in `ggsoccer` and `ggplot2` it's very easy to figure out the positions on the soccer field plot.
 
+In the next part, I will create some animations of these goal graphics. I've been slowly working my way through them so here is a preview:
 
+- [show both]
+- Osako's goal is easier because I simplified it to have only the ball be moving
+- Gazinsky's goal is harder because there are lots of moving parts that absolutely need to be included.
 
+Until next time, and keep an eye on your twitter feed to see some more World Cup viz as we go!
 
 First Goal!
 
@@ -743,4 +752,109 @@ meme_labs <- c("you can't lose the aerial battle", "if you set an offside trap")
 meme(img, meme_labs, "offside_meme.png")
 
 ```
+
+
+
+
+
+
+## Group Standings during Final Match Day!
+
+```{r fig.width=10, fig.height=6}
+library(dplyr)
+library(ggplot2)
+library(ggimage)
+library(countrycode)
+library(tidyr)
+library(forcats)
+library(extrafont)
+# loadfonts()  run once per new session!
+
+group_b <- data.frame(
+
+  time = c(1, 2, 3, 4, 5, 6, 7, 8),
+  spain = c(1, 2, 1, 2, 2, 2, 1, 1),
+  portugal = c(2, 1, 2, 1, 1, 1, 2, 2),
+  iran = c(3, 3, 3, 3, 4, 3, 3, 3),
+  morocco = c(4, 4, 4, 4, 3, 4, 4, 4)
+  
+)
+
+group_b <- group_b %>% 
+  gather(team, position, -time) %>% 
+  mutate(team = as.factor(team),
+         team = fct_relevel(team, 
+                            "spain", "portugal", "iran", "morocco"),
+         flag = team %>% 
+           countrycode(., origin = "country.name", destination = "iso2c"))
+
+x_labs <- c("0'", "14'", "19'", "45'", "81'", "90 + 1'", "90 + 3'", "Full Time")
+y_labs <- c("1st", "2nd", "3rd", "4th")
+
+score_labs <- data.frame(
+  x = c(2, 3, 4, 5, 6, 7, 8, 8, 8, 8),
+  y = c(2, 1, 1, 3, 4, 2, 1, 2, 3, 4),
+  score = c("0-1", "1-1", "1-0", "2-1", "2-2", "1-1",
+            "2-2", "1-1", "1-1", "2-2")
+)
+
+country_labs <- data.frame(
+  x = c(1, 1, 1, 1),
+  y = c(1, 2, 3, 4),
+  country = c("Spain", "Portugal", "Iran", "Morocco")
+)
+
+ggplot(
+  group_b,
+  aes(time, position)) +
+  geom_line(
+    aes(group = team), linetype = "dashed") +
+  geom_flag(
+    aes(image = flag), 
+    size = 0.1) +
+  geom_text(
+    data = country_labs,
+    aes(x = x, y = y, 
+        label = country,
+        family = "Dusha V5"),
+    nudge_y = 0.25) +
+  geom_text(
+    data = score_labs,
+    aes(x = x, y = y, 
+        label = score,
+        family = "Dusha V5"),
+    nudge_y = 0.25) +
+  scale_y_reverse(
+    expand = c(0, 0), 
+    limits = c(4.5, 0.6),
+    breaks = 1:4,
+    labels = y_labs) +
+  scale_x_continuous(
+    position = "top", 
+    breaks = 1:8,
+    labels = x_labs,
+    limits = c(0.5, 8.5)) +
+  labs(
+    x = "", y = "",
+    title = "Group B Table Throughout The Last Matchday",
+    subtitle = "Iran vs. Portugal & Spain vs. Morocco") +
+  theme_minimal() +
+  theme(
+    text = element_text(family = "Dusha V5", size = 18),
+    legend.position = "none",
+    panel.grid = element_blank())
+
+
+```
+
+how to emphasize IRAN vs. PORTUGAL and SPAIN sv. MOROCCO   ???
+
+
+
+
+
+
+
+
+
 
