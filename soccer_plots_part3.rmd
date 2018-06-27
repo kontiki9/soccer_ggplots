@@ -1,0 +1,55 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "June 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Shots on Goal: On + Off Target
+
+```{r shots on goal}
+
+```
+
+
+## Formation and line-ups
+
+make function for set formations 
+- all you need to do is pass player names and formation string ("3-5-2", "4-4-2", etc.)
+- later version: player icon with uniform (like in Wikipedia)
+
+```{r formations}
+
+```
+
+
+
+## VAR Decisions
+
+```{r var }
+
+```
+
+
+## Japan's Offside Trap!
+
+```{r}
+
+```
+
++ the meme generator with R
+
+```{r meme}
+library(memery)
+img <- ("https://imgflip.com/s/meme/Roll-Safe-Think-About-It.jpg")
+
+meme_labs <- c("you can't lose the aerial battle", "if you set an offside trap")
+
+meme(img, meme_labs, "offside_meme.png")
+
+```
+

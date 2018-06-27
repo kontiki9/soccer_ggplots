@@ -34,60 +34,45 @@ curve_data <- data.frame(x = c(100, 76),
                          x2 = c(94, 94),
                          y2 = c(35, 60))
 
-# Saudi failed clearance 
-clearance_data <- data.frame(x = c(94),
-                             y = c(35),
-                             x2 = c(82),
-                             y2 = c(33.5))
-
-# Gazinski header
-goal_data <- data.frame(x = c(94),
-                        y = c(60),
-                        x2 = c(99.2),
-                        y2 = c(47.5))
+# Saudi failed clearance, Gazinsky header
+ball_data <- data.frame(x = c(94, 94),
+                        y = c(35, 60),
+                        x2 = c(82, 99.2),
+                        y2 = c(33.5, 47.5))
 
 # soccer ball image
 goal_img <- data.frame(x = 100,
                        y = 47) %>% 
   mutate(image = "https://d30y9cdsu7xlg0.cloudfront.net/png/43563-200.png")
 
-# golovin movement
-golovin_data <- data.frame(x = c(83),
-                           y = c(24.25),
-                           x2 = c(77),
-                           y2 = c(21))
-
-# zhirkov movement 
-zhirkov_data <- data.frame(x = 98,
-                           y = 2,
-                           x2 = 88,
-                           y2 = 6)
+# golovin + zhirkov movement
+movement_data <- data.frame(x = c(83, 98),
+                           y = c(24.25, 2),
+                           x2 = c(77, 88),
+                           y2 = c(21, 6))
 
 g <- ggplot(pass_data) +
   annotate_pitch() +
   geom_segment(aes(x = x, y = y, xend = x2, yend = y2),
                arrow = arrow(length = unit(0.25, "cm"),
                              type = "closed")) +
-  geom_segment(data = clearance_data,
-               aes(x = x, y = y, xend = x2, yend = y2
-                   ), linetype = "dashed", size = 0.85) +
-  geom_segment(data = goal_data,
-               aes(x = x, y = y, xend = x2, yend = y2
-                   ), linetype = "dashed", color = "red", size = 0.85) +
-  geom_segment(data = golovin_data,
-               aes(x = x, y = y, xend = x2, yend = y2
-                   ), linetype = "dashed", color = "darkgreen", size = 1.2) +
-  geom_segment(data = zhirkov_data,
-               aes(x = x, y = y, xend = x2, yend = y2
-                   ), linetype = "dashed", color = "darkgreen", size = 1.25) +
+  geom_segment(data = ball_data,
+               aes(x = x, y = y, xend = x2, yend = y2), 
+               linetype = "dashed", size = 0.85,
+               color = c("black", "red")) +
+  geom_segment(data = movement_data,
+               aes(x = x, y = y, xend = x2, yend = y2), 
+               linetype = "dashed", size = 1.2,
+               color = "darkgreen") +
   geom_curve(data = curve_data, 
              aes(x = x, y = y, xend = x2, yend = y2), 
              curvature = 0.25, 
              arrow = arrow(length = unit(0.25, "cm"),
-                             type = "closed")) +
+                           type = "closed")) +
   geom_image(data = goal_img,
              aes(x = x, y = y,
-                 image = image), size = 0.035) +
+                 image = image), 
+             size = 0.035) +
   theme_pitch() + 
   theme(text = element_text(family = "Trebuchet MS")) +
   coord_flip(xlim = c(49, 101),
@@ -108,6 +93,7 @@ ggsave(g, filename = "gazinsky_goal.png")
 
 
 
+
 ## Cristiano Hat Trick
 
 NOTE: you need to play around with the margins in `theme()` and the `width` or `height` arguments in `ggsave()` to remove the extraneous white space that appears.
@@ -125,29 +111,28 @@ library(ggimage)
 emoji_search("soccer")  # "26bd"
 
 goals_data <- data.frame(x = c(88, 80, 71),
-                         y = c(50, 48, 54))
+                         y = c(50, 48, 54),
+                         label = c(1, 2, 3))
 
 curve_data <- data.frame(x = c(88, 71), y = c(50, 54),
                          xend = c(100, 100), yend = c(54, 54))
 
 annotation_data <- data.frame(
   hjust = c(0.5, 0.5, 0.5, 0, 0, 0),
-           size = c(6.5, 4.5, 3, 3.5, 3.5, 3.5),
-           label = c("Portugal             (3) vs. Spain             (3)",
-                     "Cristiano's Hattrick (4', 44', 88')",
-                     "by Ryo Nakagawara (@R_by_Ryo)",
-                     "1. Fouled by Nacho in the box,\nCristiano confidently strokes the ball\ninto the right corner from the spot.",
-                     "2. Guedes lays it off to Cristiano whose\nstrong shot is uncharacteristically\nfumbled by De Gea into the net.",
-                     "In the final minutes of the game,\nCristiano wins a freekick against Pique\nand curls it beautifully over the wall."),
-           x = c(110, 105, 53, 76, 66, 66), 
-           y = c(30, 20, 85, 5, 5, 55)
+  label = c("Portugal             (3) vs. Spain             (3)",
+            "Cristiano's Hattrick (4', 44', 88')",
+            "by Ryo Nakagawara (@R_by_Ryo)",
+            "1. Fouled by Nacho in the box,\nCristiano confidently strokes the ball\ninto the right corner from the spot.",
+            "2. Guedes lays it off to Cristiano whose\nstrong shot is uncharacteristically\nfumbled by De Gea into the net.",
+            "In the final minutes of the game,\nCristiano wins a freekick against Pique\nand curls it beautifully over the wall."),
+  x = c(110, 105, 53, 76, 66, 66), 
+  y = c(30, 20, 85, 5, 5, 55)
 )
 
 flag_data <- data.frame(
-  image = c("PT, ES"),
+  image = c("PT", "ES"),
   x = c(110, 110),
-  y = c(19.1, 51.1),
-  size = 0.08
+  y = c(19.1, 51.1)
 )
 
 # PLOT
@@ -155,7 +140,8 @@ flag_data <- data.frame(
 cr <- ggplot(goals_data) +
   annotate_pitch() +
   theme_pitch() +
-  theme(text = element_text(family = "Dusha V5")) +
+  theme(text = element_text(family = "Dusha V5"),
+        legend.position = "none") +
   coord_flip(xlim = c(55, 112),
              ylim = c(-1, 101)) +
   geom_segment(x = 80, y = 48, 
@@ -172,17 +158,17 @@ cr <- ggplot(goals_data) +
   geom_text(data = annotation_data,
             family = "Dusha V5", 
             aes(x = x, y = y,
-                hjust = hjust, size = size, label = label)) +
-  ggimage::geom_flag(data = flag_data,
-                     aes(x = x, y = y,
-                       image = image, size = size)       # Portugal Flag
-                     ) +
+                hjust = hjust, label = label),
+            size = c(6.5, 4.5, 3, 3.5, 3.5, 3.5)) +
+  geom_flag(data = flag_data,
+            aes(x = x, y = y,
+                image = image), size = c(0.08, 0.08)) +       # Portugal + Spain Flag
   ggimage::geom_emoji(aes(x = 105, 
-                          y = c(45, 50, 55)),
+                 y = c(45, 50, 55)),
              image = "26bd", size = 0.035) +
   geom_point(aes(x = x, y = y), 
              shape = 21, size = 7, color = "black", fill = "white") +
-  geom_text(aes(x = x, y = y, label = c(1, 2, 3)), family = "Dusha V5")
+  geom_text(aes(x = x, y = y, label = label, family = "Dusha V5"))
 
 ggsave(cr, filename = "cr_hattrick.png", height = 5)
 ```
@@ -196,7 +182,6 @@ library(ggplot2)
 library(dplyr)
 library(ggsoccer)
 library(extrafont)
-library(emoGG)
 library(ggimage)
 
 
