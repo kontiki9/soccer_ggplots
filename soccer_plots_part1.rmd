@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 
 After posting a couple of my World Cup viz on Twitter, I thought I'll collate some of them into a blog post. This will be part 1 of a series as the World Cup goes on and I keep improving my viz skills throughout the tournament. I will also explain how I made improvements in each new plot, practice makes perfect!
 
-
 Let's look at some of the packages we will use!
 
 ```{r eval=FALSE}
@@ -27,7 +26,7 @@ library(extrafont) # insert custom fonts into plots
 library(ggimage)   # insert images and emoji into plots
 ```
 
-The important package here is the `ggsoccer` package made by Ben Torvey, check out the GitHub repo [here]() and 
+The important package here is the `ggsoccer` package made by Ben Torvaney, check out the GitHub repo [here](https://github.com/Torvaney/ggsoccer).
 
 Showing is better than telling in this instance so let's take a look at the pitch:
 
@@ -48,7 +47,7 @@ Basically, `annotate_pitch()` creates the markings for the soccer field such as 
 
 The only problem with doing this is manually creating the data points. This is more a problem of access to the data rather than availability as sports analytics firms, most notably Opta, generate a huge amount of data for every player in every match, however it is not easy for a regular guy like me to buy it. 
 
-Some people have managed to create some nice [heatmaps](https://twitter.com/neilcharles_uk/status/1009181021965778945) by scraping WhoScored.com and other sites (that create their viz from purchased data from Opta) with __RSelenium__ or some other JS scrapers but that was a bit out of my expertise so I resorted to creating the coordinate positions by hand. Thankfully, due to the plotting system in `ggsoccer` and `ggplot2`, it's very easy to figure out the positions on the soccer field plot and with a little bit of practice it doesn't take too much time.
+Some people have managed to create some nice [heatmaps](https://twitter.com/neilcharles_uk/status/1009181021965778945) by scraping _WhoScored.com_ and other sites (that create their viz from purchased data from Opta) with __RSelenium__ or some other JS scrapers but that was a bit out of my expertise so I resorted to creating the coordinate positions by hand. Thankfully, due to the plotting system in `ggsoccer` and `ggplot2`, it's very easy to figure out the positions on the soccer field plot and with a little bit of practice it doesn't take too much time.
 
 Putting that aside, let's plot out the 
 To save space I do not show the data frames with the coordinate points, however you can find them [here]() on my GitHub!
@@ -242,20 +241,16 @@ ggplot(goals_data) +
 
 ```
 
+Compared to the first plot, we increased the x-limit so that we could place our `geom_text()` annotations and flag images together without having to use grobs. This also meant that we put the plot title and subtitle in the `geom_text()` rather than in the `labs()` function, which let all the text/label data be organized in one dataframe. 
 
-- Grabbing flag images
-
-You need to know the two-digit ISO codes so that the function nows which flags to look up
-
-Put the data
+To show the flags we use the `geom_flag()` function from the ggimage package. The function requires you to pass a two-digit ISO code in the `image` argument for the flags of the countries you want. You can find the ISO codes for countries with a quick google search, Portugal is "PT" and Spain is "ES".
 
 ```{r eval=FALSE}
 
 flag_data <- data.frame(
-  image = c("PT, ES"),
+  image = c("PT", "ES"),
   x = c(110, 110),
-  y = c(19.1, 51.1),
-  size = 0.08
+  y = c(19.1, 50.1)
 )
 
 ## ggplot2 code ##
@@ -266,15 +261,11 @@ geom_flag(data = flag_data,
 
 ```
 
-`geom_flag()` function from the `ggimage` package
+Some other options to do this include using the `ggflags` package or if you don't like the flags used in `geom_flag()`, pass an image of a flag of your choosing to `geom_image()`.
 
-(other options include packages like `ggflags`)
+There is actually a better way to search for the ISO codes which I will show later!
 
-there is a better way to do this which I will show later!
-
-- use soccer ball emoji instead of image
-
-We can use the `emoji_search()` function from the emoGG package to find the emoji we want to use. Then use either emoGG or ggimage's `geom_emoji()` function to insert it into your ggplot!
+Now, instead of the soccer ball image, we can use the `emoji_search()` function from the `emoGG` package to find the soccer ball emoji. Then use either emoGG or ggimage's `geom_emoji()` function to insert it into your ggplot!
 
 ```{r}
 library(emoGG)
@@ -289,10 +280,9 @@ ggimage::geom_emoji(aes(x = 105,
 ## ggplot2 code ##
 ```
 
-Instead of the soccer ball image in the first graphic, I will be using the emoji version isntead from now on!
+Instead of the soccer ball image in the first graphic, I will be using the emoji version from now on!
 
-- add World Cup official font
-"Dusha" font created by a Portugese design agency back in 2015 and has been used in all official World Cup prints and graphics. Some of the letters may look a bit squished but overall I quite like it, so I wanted to incorporate it in my plots. To do so you need to download the `.TTF` file from [here](http://fifa2018wiki.com/fifa-2018-font-typeface-download-dusha-font-ttf/509/), then right-click and install it. Now, we need to make sure R can use it, this can be done by using the `extrafont` package!
+The official World Cup font, "Dusha", was created by a Portugese design agency back in 2014 and has been used in all official World Cup prints and graphics. Some of the letters may look a bit squished but overall I quite like it, so I wanted to incorporate it in my plots. To do so you need to download the `.TTF` file from [here](http://fifa2018wiki.com/fifa-2018-font-typeface-download-dusha-font-ttf/509/), then right-click and install it. Now, we need to make sure R can use it, this can be done by using the `extrafont` package!
 
 ```{r extrafont, eval=FALSE}
 font_import() # import font files in your computer
@@ -330,6 +320,17 @@ osako_gol <- data.frame(x = 94, y = 49,
 player_label <- data.frame(x = c(92, 99), 
                            y = c(49, 2))
 
+annotation_data <- data.frame(
+  x = c(110, 105, 70, 92, 53), 
+  y = c(30, 30, 45, 81, 85),
+  hjust = c(0.5, 0.5, 0.5, 0.5, 0.5),
+  label = c("Japan             (2) vs. Colombia             (1)",
+            "Kagawa (PEN 6'), Quintero (39'), Osako (73')",
+            "Japan press their man advantage, substitute Honda\ndelivers a delicious corner kick for Osako to (somehow) tower over\nColombia's defense and flick a header into the far corner!",
+            "Bonus: Ospina looking confused and\ndoing a lil' two-step-or-god-knows-what.",
+            "by Ryo Nakagawara (@R_by_Ryo)")
+)
+
 flag_data <- data.frame(
   image = c("JP", "CO"),
   x = c(110, 110),
@@ -341,12 +342,13 @@ wc_logo <- data.frame(x = 107,
 
 ```
 
-```{r Osako winner plot, fig.width=6, fig.height=8}
+```{r Osako winner plot, fig.width=7, fig.height=5}
 
 ggplot(osako_gol) +
   annotate_pitch() +
   theme_pitch() +
-  theme(text = element_text(family = "Dusha V5")) +
+  theme(text = element_text(family = "Dusha V5"),
+        plot.margin=grid::unit(c(0,0,0,0), "mm")) +
   coord_flip(xlim = c(55, 112),
              ylim = c(-1, 101)) +
   geom_curve(data = cornerkick_data,
@@ -362,43 +364,30 @@ ggplot(osako_gol) +
              label = c("Osako", "Honda"), family = "Dusha V5") +
   geom_point(aes(x = 98, y = 50), size = 3, color = "green") +
   geom_text(aes(x = 99.7, y = 50), size = 5, label = "???", family = "Dusha V5") +
-  annotate(geom = "text", family = "Dusha V5", 
-           hjust = c(0.5, 0.5, 0.5, 0.5, 0.5),
-           size = c(6.5, 4.5, 4, 3.5, 3),
-           label = c("Japan             (2) vs. Colombia             (1)",
-                     "Kagawa (PEN 6'), Quintero (39'), Osako (73')",
-                     "Japan press their man advantage, substitute Honda\ndelivers a delicious corner kick for Osako to (somehow) tower over\nColombia's defense and flick a header into the far corner!",
-                     "Bonus: Ospina looking confused and\ndoing a lil' two-step-or-god-knows-what.",
-                     "by Ryo Nakagawara (@R_by_Ryo)"),
-           x = c(110, 105, 70, 92, 53), 
-           y = c(30, 30, 45, 81, 85)) +
-  ggimage::geom_flag(aes(x = x, y = y,
-                         image = image),       # Japan Flag
+  geom_text(data = annotation_data,
+            family = "Dusha V5", 
+            aes(x = x, y = y,
+                hjust = hjust, label = label), 
+            size = c(6.5, 4.5, 4, 3.5, 3)) +
+  ggimage::geom_flag(data = flag_data,
+                     aes(x = x, y = y,
+                         image = image),       
                      size = c(0.08, 0.08)) +
   ggimage::geom_emoji(aes(x = 95, 
                           y = 50),
              image = "26bd", size = 0.035) +
   geom_image(data = wc_logo,
              aes(x = x, y = y,
-                 image = image), size = 0.17) +
-  theme(plot.margin=grid::unit(c(0,0,0,0), "mm"))
+                 image = image), size = 0.17)
 
 ```
 
 
+I could have used the `annotate()` function to add the little comment about Ospina being stuck in no-man's-land but I prefer to have all of my text in a single dataframe. Like before, we also had to expand the x-axis limits in the `coord_flip()`. This is also so we can insert the World Cup image on the top right without using grobs/Magick and such. To grab that World Cup logo, we do the same things as we did when we added the soccer ball image in the first plot with `ggimage`.
 
-heavy usage of the `annotate()` function to get the labels exactly as we want them! Like before, we also had to expand the x-axis limits in the `coord_flip()`. This is also so we can insert the World Cup image on the top right without using grobs/Magick and such.
+For finding the ISO codes to input for the `geom_flag()` function we can do one better than previous attempts by using the `countrycode` package to find ISO codes without having to look online!
 
-Grabbing World Cup logo: 
-
-use ggimages and do the same thing as we did when we added the soccer ball image into the plot
-
-as before we can place inside plot with `geom_image()` function and 
-
-
-finding the ISO codes without having to look online!
-
-`countrycodes` pkg!
+By passing country names into `countrycode()` function and labelling them as "country.name" in the `origin` argument, the function will know that the input is the regular name for a country. Then you specify the output such as "iso2c" for the two-digit ISO codes such as in our case, "wb" for World Bank codes, "eurostat.name" for country names in the Eurostat database and so on...!
 
 ```{r}
 
@@ -413,12 +402,11 @@ flag_data <- data.frame(
   ) %>% 
   select(-team)
 
+glimpse(flag_data)
 
 ```
 
-pretty intuitive for countries like Japan and Colombia but when you're dealing with lots of countries like at the world cup or the olympics, having a reproducible workflow for this is very helpful!
-
-the rest is the same as adding in the flags as shown previously with `geom_flag()`!
+Although the ISO codes are pretty intuitive for countries like Japan and Colombia but when you're dealing with lots of countries like at the world cup or the olympics, having a reproducible workflow for this is very helpful! 
 
 These are goals just from the first week of the World Cup and if I had the time I would do more as there have been some fantastic individual and team goals so far. I will be making a few more and will post it on Twitter so keep an eye out there!
 
@@ -428,4 +416,13 @@ In a future part (as in not necessarily the next part), I want to animate some o
 - Osako's goal is easier because I simplified it to have only the ball be moving
 - Gazinsky's goal is harder because there are lots of moving parts that absolutely need to be included.
 
+```{r}
 
+```
+
+
+```{r}
+
+```
+
+tweenr
