@@ -1,0 +1,130 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "June 27, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Recreate & Animate Your Favorite World Cup Goals!
+
+After posting a couple of my World Cup viz on Twitter, I thought I'll collate some of them into a blog post!
+This will be part 1 of a series as the World Cup goes on and I keep improving my viz skills throughout the tournament! 
+
+
+Let's look at some of the packages we will use!
+
+```{r}
+library(ggplot2)
+library(ggsoccer)
+library(dplyr)
+library(purrr)
+library(tweenr)
+library(gganimate)
+library(extrafont)
+library(ggimage)
+```
+
+You can also grab images from URLs and 
+
+
+```{r}
+
+```
+
+Grabbing World Cup logo: 
+
+```{r}
+
+```
+
+Grabbing flag images
+
+```{r}
+
+```
+
+Let's take a look at the pitch 
+
+```{r half-pitch template}
+library(ggplot2)
+library(ggsoccer)
+pass_data <- data.frame(x = c(100, 94, 82,  84, 77, 76, 94, 99.2),
+                        y = c(0,   35, 33.5, 6, 13, 19, 60, 47.5),
+                        time = c(1, 2, 3, 4, 5, 6, 7, 8))
+
+data <- data.frame(x = 1, y = 1)
+
+ggplot(data) +
+  annotate_pitch() +
+  theme_pitch() +
+  coord_flip(xlim = c(49, 101),
+             ylim = c(-1, 101))
+```
+
+
+
+Use a combination of geom_segments() and geom_curves() to show the path of the ball and the players!
+
+The only problem with doing this is manually creating the data points. This is more a problem of access rather than availability as sports analytics firms, most notably Opta, generate a huge amount of data for every player in every match, however it is not easy for a regular dude like me to buy it. 
+
+Some people have managed to create some nice heatmaps by scraping WhoScored.com and other sites (that create their viz from purchased data from Opta) but that was a bit of my expertise so I resorted to creating the coordinate positions by hand. Thankfully, due to the plotting system in `ggsoccer` and `ggplot2` it's very easy to figure out the positions on the soccer field plot.
+
+## Shots on Goal: On + Off Target
+
+```{r shots on goal}
+
+```
+
+
+## Formation and line-ups
+
+make function for set formations 
+- all you need to do is pass player names and formation string ("3-5-2", "4-4-2", etc.)
+- later version: player icon with uniform (like in Wikipedia)
+
+```{r formations}
+
+```
+
+
+
+## VAR Decisions
+
+```{r var }
+
+```
+
+
+## Japan's Offside Trap!
+
+```{r}
+
+```
+
++ the meme generator with R
+
+```{r meme}
+library(memery)
+img <- ("https://imgflip.com/s/meme/Roll-Safe-Think-About-It.jpg")
+
+meme_labs <- c("you can't lose the aerial battle", "if you set an offside trap")
+
+meme(img, meme_labs, "offside_meme.png")
+
+```
+
+
+
+
+
+In the next part, I will create some animations of these goal graphics. I've been slowly working my way through them so here is a preview:
+
+- [show both]
+- Osako's goal is easier because I simplified it to have only the ball be moving
+- Gazinsky's goal is harder because there are lots of moving parts that absolutely need to be included.
+
+Until next time, and keep an eye on your twitter feed to see some more World Cup viz as we go!
