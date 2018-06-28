@@ -321,7 +321,7 @@ ball_list <- map(seq(nrow(ball_data)),
                       ~ ball_data[c(seq(.x), rep(.x, nrow(ball_data) - .x)), ])
   
 osako_tween <- ball_list %>% 
-  tween_states(tweenlength = 1.5, statelength = 0.1, ease = "linear", nframes = 50)
+  tween_states(tweenlength = 1.5, statelength = 0.01, ease = "quadratic-out", nframes = 50)
 
 os_t <- osako_tween %>% group_by(.frame) %>% slice(3)
 # take only changed 3rd value (1 and 2 of each frame are just copies of ball point origin coords)
@@ -373,12 +373,12 @@ gganimate(g2,
 
 gganimate(g2, 
           ani.width = 800, ani.height = 500, 
-          interval = 0.5,
+          interval = 0.01,
           "osako_222.gif") 
 
 # multiple balls appearing after every pause...?????? >>> fixed see above ost_t!
 # fix how create list of df and tween_elements() >>> so original 2 points DONT show for each frame.
-
+# quadratic-out is the closest so far...
 ```
 
 
