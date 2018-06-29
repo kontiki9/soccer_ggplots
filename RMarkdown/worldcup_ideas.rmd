@@ -28,6 +28,9 @@ knitr::opts_chunk$set(echo = TRUE)
 - need to combine images to be side-by-side, then morph each combined image from one-to-next!
 
 
+ggjoy plot for goals scored >>> which minute of game?
+
+
 - rtweet worldcup???
 
 
