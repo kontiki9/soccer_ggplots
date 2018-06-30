@@ -189,12 +189,90 @@ jkits_ani %>%
 
 
 
+Combine kits for every match sid-by-side
+
+
+```{r}
+library(magick)
+library(dplyr)
+library(purrr)
+library(extrafont)
+#loadfonts()
+
+japan_kits <- list.files(path = "../japan_kits/1998/", pattern = "*.gif", full.names = TRUE) %>% 
+  map(image_read) %>% 
+  image_join()
+
+# combine together side-by-side
+
+japan_kits %>% image_append() # all 4 kits in one img
+
+kit_labels <- data_frame(
+  label = c("Japan (1) vs. (0) Argentina", "Japan (0) vs. (1) Croatia", "Japan (1) vs. (2) Jamaica")
+)
+
+japan_kits[c(4, 1:3)] %>% image_append()
+
+japan_kits %>% 
+  map2(4, 1:3, ~ image_append)
+
+japan_kits[c(4, 3)] %>% 
+  image_append() %>% 
+  image_border(geometry = "10x40", color = "white") %>% 
+  image_annotate(text = kit_labels$label, 
+                 gravity = "south", location = "+0+300",
+                 font = "Dusha V5", size = 30)
+
+
+```
 
 
 
+```{r}
+library(magick)
+library(dplyr)
+library(purrr)
+library(extrafont)
+#loadfonts()
+
+japan_kits <- list.files(path = "../japan_kits/1998/", pattern = "*.gif", full.names = TRUE) %>% 
+  map(image_read) %>% 
+  image_join()
+
+kit_labels <- data_frame(
+  label = c("Japan (1) vs. (0) Argentina", "Japan (0) vs. (1) Croatia", "Japan (1) vs. (2) Jamaica")
+)
+
+j_arg <- japan_kits[c(4, 1)] %>% image_append()  # vs. Argentina
+j_cro <- japan_kits[c(4, 2)] %>% image_append()  # vs. Croatia
+j_jam <- japan_kits[c(4, 3)] %>% image_append()  # vs. Jamaica
+
+j_kits <- c(j_arg, j_cro, j_jam)
+
+kit_list <-list(img = j_kits)
+
+#kit_list %>% set_names(nm = c("img", "img", "img"))
 
 
+for (i in seq_along(kit_list$img)) {
+  
+  kit_list$img[i] <- kit_list$img[i] %>% 
+    image_border(geometry = "10x40", color = "white") %>% 
+    image_annotate(text = kit_labels$label[i], 
+                   gravity = "south",
+                   location = "+0+300",
+                   font = "Dusha V5",
+                   size = 25)
+}
 
+
+j_kits %>% 
+  image_border(geometry = "10x40", color = "white") %>% 
+  image_annotate(text = "world cup 1998", 
+                 gravity = "south", location = "+0+300",
+                 font = "Dusha V5", size = 30)
+
+```
 
 
 
