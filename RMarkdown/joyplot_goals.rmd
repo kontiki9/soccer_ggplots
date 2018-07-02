@@ -62,6 +62,7 @@ library(tidyr)
 library(stringr)
 library(tibble)
 library(purrr)
+library(purrrlyr)
 
 group_goals <- read.csv("group_goals.csv", stringsAsFactors = FALSE)
 
@@ -87,22 +88,72 @@ goal_length <- group_goals %>%
 1:8 # vector of 1 for each group A-H
 group_goals # object to map the slice() through
 
+
+goal_start
+goal_end
+
 group_goals %>% 
   slice(goal_length$goal_start[1]:goal_length$goal_end[1]) %>% 
   mutate(groupname = "Group A")
 
 group_goals %>% 
-  slice(goal_length$goal_start[2]:goal_length$goal_end[2])
+  slice(goal_length$goal_start[2]:goal_length$goal_end[2]) %>% 
+  mutate(groupname = "Group B")
 
 group_goals %>% 
   slice(goal_length$goal_start[3]:goal_length$goal_end[3])
+
+
+goal_start_vec <- goal_length$goal_start
+goal_end_vec <- goal_length$goal_end
+
+group_goals %>% 
+  map(., ~slice(goal_start_vec:goal_end_vec))
+
+group_goals %>% 
+  map(., ~slice(goal_start_vec:goal_end_vec))
+
+```
+
+
+
+
+
+```{r}
+
+for (i in seq_along(goal_length$value)) {
+  
+  ggoals[i] <- group_goals %>% 
+    slice(goal_length$goal_start[i]:goal_length$goal_end[i]) %>% 
+    mutate(group = paste0("Group", goal_length$value[i]))
+  
+}
+
+
+g_rows <- goal_length %>% unite(group_row, goal_start, goal_end, sep = ":")
+
+goal_length %>% spread(value, goal_start, goal_end)
+
+group_goals %>% 
+  slice_rows(.cols = g_rows$group_row)
+
+group_goals %>% 
+  map(1:8, ~slice(goal_length$goal_end[.x]:goal_length$goal_end[.x]))
+
+
+by_slice()
+
+```
+
+
+```{r}
 
 1:8 %>% 
   map2(.x, group_goals, 
        ~ slice(goal_length$goal_end[.x]:goal_length$goal_end[.x]))
 
 
-goalthing <- NULL
+goalthing <- list()
 
 
 for (i in seq_along(1:8)) {
