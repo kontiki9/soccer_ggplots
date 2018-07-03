@@ -650,24 +650,6 @@ library(countrycode)
 # library(StatsBombR)
 # loadfonts()
 
-# senegal freekick
-pass_data <- data.frame(
-  x = c(70, 70, 87, 95),       # pass balls
-  y = c(85, 85, 52, 33),
-  
-  time = c(1, 2, 3, 4))
-
-# offside bar
-offside_bar <- data.frame(
-  x =    c(83, 82.7, 80, 75),
-  xend = c(83, 82.7, 80, 75),
-  
-  y =    c( 5,  5,  5,  5),
-  yend = c(95, 95, 95, 95),
-  
-  time = c(1, 2, 3, 4)
-)
-
 # flags
 flag_data <- data.frame(
   x = c( 48, 87),
@@ -683,64 +665,74 @@ flag_data <- data.frame(
 # PLAYERS
 # JAPAN: x, y (blue)     Senegal: x2, y2  (lightgreen)
 # push 2, 3 frames up above box >>> add 5, 6 as frames??
-players_data <- data.frame(
+trap_data <- data.frame(
   
-  time = c(1, 2, 3, 4),
+  time = c(1, 2, 3, 4, 5),
   
-  # japan
-  jx = c(83, 83, 81, 75),
-  jy = c(65,  65,  65,  65),
+  # ball trajectory
+  x = c(70, 70, 70, 87, 95),       # pass balls
+  y = c(85, 85, 85, 52, 33),
   
-  jx2 = c(83, 83, 82.5, 77),
-  jy2 = c(60.5, 60.5, 60.5, 60.5),
+  # offside bar
+  xo =    c(83, 81.2, 79, 77.5, 70),
+  xoend = c(83, 81, 77, 75, 70),
   
-  jx3 = c(83, 83, 81, 75),
-  jy3 = c(55, 55, 55, 55),
+  yo =    c( 5,  5,  5,  5, 5),
+  yoend = c(95, 95, 95, 95, 95),
   
-  jx4 = c(83, 83, 81, 75),
-  jy4 = c(52, 52, 52, 52),
+  # players: japan
+  jx  = c(83, 81, 77, 75, 70),
+  jy  = c(rep(65, 5)),
   
-  jx5 = c(82.8, 82.5, 81, 74),
-  jy5 = c(rep(49, 4)),
+  jx2 = c(83, 81.8, 78.5, 77, 70),
+  jy2 = c(rep(60.5, 5)),
   
-  jx6 = c(83, 82.7, 82.5, 74),
-  jy6 = c(45, 45, 45, 45),
+  jx3 = c(83, 81, 76.5, 75, 71),
+  jy3 = c(rep(55, 5)),
+  
+  jx4 = c(83, 81.2, 76.3, 75, 70),
+  jy4 = c(rep(52, 5)),
+  
+  jx5 = c(82.8, 81, 77, 74, 70),
+  jy5 = c(rep(49, 5)),
+  
+  jx6 = c(83, 81.8, 77, 74, 70),
+  jy6 = c(rep(45, 5)),
 
-  jx7 = c(83.8, 82.5, 81, 77.5),
-  jy7 = c(rep(40, 4)),
+  jx7 = c(83.8, 81, 79, 77.5, 70),
+  jy7 = c(rep(40, 5)),
   
-  # senegal
-  sx = c(83, 84, 84, 84),
-  sy = c(rep(33, 4)),
+  # players: senegal
+  sx = c(83, 84, 84, 84, 84),
+  sy = c(rep(33, 5)),
   
-  sx2 = c(83, 85, 87, 95),
-  sy2 = c(38, 37, 35, 33),
+  sx2 = c(83, 85, 87, 92, 95),
+  sy2 = c(38, 37, 35, 34, 33),
   
-  sx3 = c(83, 84, 84, 83),
-  sy3 = c(rep(41, 4)),
+  sx3 = c(83, 84, 84, 83, 83),
+  sy3 = c(rep(41, 5)),
   
-  sx4 = c(83, 84, 83, 78),
-  sy4 = c(rep(45, 4)),
+  sx4 = c(83, 84, 83, 78, 78),
+  sy4 = c(rep(45, 5)),
   
-  sx5 = c(83, 84, 87, 89),
-  sy5 = c(rep(52, 4)),
+  sx5 = c(83, 84, 87, 88, 89),
+  sy5 = c(rep(52, 5)),
   
-  sx6 = c(83, 85, 84, 84),
-  sy6 = c(rep(69, 4))
+  sx6 = c(83, 85, 84, 84, 83),
+  sy6 = c(rep(69, 5))
 )
 
 # fix focus field issue with coord_fixed() + aspect_ratio = NULL in theme_pitch()
-g <- ggplot(players_data) +
+g <- ggplot(trap_data) +
   annotate_pitch() +
   theme_pitch(aspect_ratio = NULL) +
   coord_fixed(xlim = c(30, 101),
        ylim = c(-5, 131)) +
   # offside line
-  geom_segment(data = offside_bar,
-               aes(x = x, y = y, 
-                   xend = xend, yend = yend,
+  geom_segment(aes(x = xo, y = yo, 
+                   xend = xoend, yend = yoend,
                    frame = time), 
-               color = "black", size = 1.5) +
+               color = "black", size = 1.3) +
   # start at 83      just use geom_segment instead
   # japan
   geom_point(aes(x = jx, y = jy, frame = time), size = 4, color = "blue") +
@@ -773,12 +765,16 @@ g <- ggplot(players_data) +
                      aes(x = x, y = y,
                          image = image),       
                      size = c(0.08, 0.08)) +
-  ggimage::geom_emoji(data = pass_data,
-                      aes(x = x, y = y, frame = time),
+  ggimage::geom_emoji(aes(x = x, y = y, 
+                          frame = time),
                       image = "26bd", size = 0.035)
 
+g
 
 
+```
+
+```{r fig.height=6, fig.width=4}
 # vline for offside line
 # x1 Ja, x2 Sen
 # sligh twiggle before kick? 
@@ -787,6 +783,73 @@ g <- ggplot(players_data) +
 gganimate(g, "g_ani.gif")
 
 ```
+
+
+
+
+
+```{r fig.height=6, fig.width=4}
+offside_list <- map(seq(nrow(trap_data)),
+                      ~ trap_data[c(seq(.x), rep(.x, nrow(trap_data) - .x)), ])
+  
+offside_tween <- offside_list %>% 
+  tween_states(tweenlength = 1.5, statelength = 0.0001, ease = "linear", nframes = 50)
+
+off_t <- offside_tween %>% group_by(.frame) %>% slice(5)
+
+g2 <- ggplot(off_t) +
+  annotate_pitch() +
+  theme_pitch(aspect_ratio = NULL) +
+  coord_fixed(xlim = c(30, 101),
+       ylim = c(-5, 131)) +
+  # offside line
+  geom_segment(aes(x = xo, y = yo, 
+                   xend = xoend, yend = yoend,
+                   frame = .frame), 
+               color = "black", size = 1.3) +
+  # start at 83      just use geom_segment instead
+  # japan
+  geom_point(aes(x = jx, y = jy, frame = .frame), size = 4, color = "blue") +
+  geom_point(aes(x = jx2, y = jy2, frame = .frame), size = 4, color = "blue") +
+  geom_point(aes(x = jx3, y = jy3, frame = .frame), size = 4, color = "blue") +
+  geom_point(aes(x = jx4, y = jy4, frame = .frame), size = 4, color = "blue") +
+  geom_point(aes(x = jx5, y = jy5, frame = .frame), size = 4, color = "blue") +
+  geom_point(aes(x = jx6, y = jy6, frame = .frame), size = 4, color = "blue") +
+  geom_point(aes(x = jx7, y = jy7, frame = .frame), size = 4, color = "blue") +
+  # senegal
+  geom_point(aes(x = sx, y = sy, frame = .frame), size = 4, color = "green") +
+  geom_point(aes(x = sx2, y = sy2, frame = .frame), size = 4, color = "green") +
+  geom_point(aes(x = sx3, y = sy3, frame = .frame), size = 4, color = "green") +
+  geom_point(aes(x = sx4, y = sy4, frame = .frame), size = 4, color = "green") +
+  geom_point(aes(x = sx5, y = sy5, frame = .frame), size = 4, color = "green") +
+  geom_point(aes(x = sx6, y = sy6, frame = .frame), size = 4, color = "green") +
+  
+  # free kick spot (reference)
+  geom_point(aes(x = 70, y = 85), color = "blue", size = 1.2) +
+  annotate(geom = "text", family = "Dusha V5", 
+           hjust = c(0, 0, 0, 0.5),
+           size = c(4.5, 3, 5.5, 3),
+           label = c("Japan             (2) vs. Senegal             (2)",
+                     "Mane (11'), Inui (33'), Wague (71'), Honda (78')",
+                     "The Perfect Offside Trap",
+                     "by Ryo Nakagawara\n(@R_by_Ryo)"),
+           x = c(30, 30, 30, 94), 
+           y = c(117, 108, 125, -3)) +
+  ggimage::geom_flag(data = flag_data,
+                     aes(x = x, y = y,
+                         image = image),       
+                     size = c(0.08, 0.08)) +
+  ggimage::geom_emoji(aes(x = x, y = y, 
+                          frame = .frame),
+                      image = "26bd", size = 0.035)
+
+gganimate(g2, 
+          interval = 0.001,
+          "offside.gif") 
+
+```
+
+
 
 
 
