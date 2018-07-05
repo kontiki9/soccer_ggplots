@@ -9,10 +9,26 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## matchday theme()
+
+```{r theme()}
+
+theme_matchday <- theme_minimal() +
+  theme(
+    text = element_text(family = "Dusha V5", size = 18),
+    axis.title = element_blank(),
+    axis.text = element_text(color = "grey30"),
+    legend.position = "none",
+    panel.grid = element_blank())
+
+```
+
+
+
 
 ## Group A Standings throughout Final Matchday!
 
-```{r fig.width=7, fig.height=6}
+```{r fig.width=7, fig.height=5}
 library(dplyr)
 library(ggplot2)
 library(ggimage)
@@ -24,10 +40,10 @@ library(extrafont)
 
 group_a <- data.frame(
 
-  time = c(1, 2, 3, 4),
-  russia = c(1, 2, 2, 2),
-  uruguay = c(2, 1, 1, 1),
-  egypt = c(3, 3, 4, 4),
+  time =         c(1, 2, 3, 4),
+  russia =       c(1, 2, 2, 2),
+  uruguay =      c(2, 1, 1, 1),
+  egypt =        c(3, 3, 4, 4),
   saudi_arabia = c(4, 4, 3, 3)
   
 )
@@ -57,11 +73,18 @@ country_labs <- data.frame(
 )
 
 goals_labs <- data.frame(
-  x = c(4, 4, 4),
-  y = c(1, 3, 4),
-  scorers = c("Suarez (10')\nCheryshev o.g. (23')\nCavani (90')",
-              "Al-Faraj pen. (45+6')\nAl-Dawsari (90+5')",
+  x = c(2, 3, 4, 4, 4),
+  y = c(1, 3, 1, 3, 4),
+  scorers = c("Suarez (10')", "Al-Dawsari (90+5')",
+              "Cheryshev o.g. (23')\nCavani (90')",
+              "Al-Faraj pen. (45+6')",
               "Salah (22')")
+)
+
+points_labs <- data.frame(
+  x = c(rep(max(group_a$time), 4)),
+  y = c(rep(1:4, 1)),
+  points = c("9 pts.", "6 pts.", "3 pts.", "0 pts.")
 )
 
 
@@ -80,19 +103,27 @@ groupA <- ggplot(
     aes(x = x, y = y, 
         label = country,
         family = "Dusha V5"),
-    nudge_y = 0.25, size = 7) +
+    nudge_y = 0.25, size = 5) +
   geom_text(
     data = score_labs,
     aes(x = x, y = y, 
         label = score,
         family = "Dusha V5"),
-    nudge_y = 0.25, size = 6) +
+    nudge_y = 0.25, size = 5) +
   geom_text(
     data = goals_labs,
     aes(x = x, y = y, 
         label = scorers,
         family = "Dusha V5"),
-    nudge_y = -0.3, size = 3) +
+    nudge_y = -0.3, size = 3.5) +
+  geom_text(
+    data = points_labs,
+    aes(x = x, y = y, 
+        label = points,
+        family = "Dusha V5"),
+    nudge_x = 0.6,
+    size = 5,
+    color = "grey30") +
   scale_y_reverse(
     expand = c(0, 0), 
     limits = c(4.5, 0.6),
@@ -102,19 +133,14 @@ groupA <- ggplot(
     position = "top", 
     breaks = 1:4,
     labels = x_labs,
-    limits = c(0.5, 4.5)) +
+    limits = c(0.7, 4.8)) +
   labs(
-    x = "", y = "",
     title = "Group A Table Throughout The Last Matchday",
     subtitle = "Uruguay vs. Russia & Saudi Arabia vs. Egypt",
     caption = "by @R_By_Ryo") +
-  theme_minimal() +
-  theme(
-    text = element_text(family = "Dusha V5", size = 18),
-    legend.position = "none",
-    panel.grid = element_blank())
+  theme_matchday
 
-ggsave(groupA, filename = "groupA_table.png")
+ggsave(groupA, filename = "groupA_table.png", width = 7, height = 5)
 ```
 
 
@@ -122,7 +148,7 @@ ggsave(groupA, filename = "groupA_table.png")
 
 ## Group B Standings during Final Match Day!
 
-```{r fig.width=10, fig.height=6}
+```{r fig.width=10, fig.height=5}
 library(dplyr)
 library(ggplot2)
 library(ggimage)
@@ -167,12 +193,22 @@ country_labs <- data.frame(
 )
 
 goals_labs <- data.frame(
-  x = c(8, 8, 8, 8),
-  y = c(1, 2, 3, 4),
-  scorers = c("Isco (19')\nAspas (90+1')",
-              "Quaresma (45')",
-              "Ansarifard pen. (90+3')",
-              "Boutaib (14')\nEn-Nesyri (81')")
+  x = c(2, 3, 4, 5, 6, 7),
+  y = c(1, 1, 1, 3, 4, 2),
+  scorers = c(
+    "Boutaib (14')\n(Morocco)",
+    "Isco (19')",
+    "Quaresma (45')",
+    "En-Nesyri (81')",
+    "Aspas (90+1')\n(Spain)",
+    "Ansarifard pen. (90+3')\n(Iran)"
+    )
+)
+
+points_labs <- data.frame(
+  x = c(rep(max(group_b$time), 4)),
+  y = c(rep(1:4, 1)),
+  points = c("5 pts.", "5 pts.", "4 pts.", "1 pts.")
 )
 
 ## PLOT
@@ -184,25 +220,33 @@ groupB <- ggplot(
     aes(group = team), linetype = "dotted") +
   geom_flag(
     aes(image = flag), 
-    size = 0.1) +
+    size = 0.08) +
   geom_text(
     data = country_labs,
     aes(x = x, y = y, 
         label = country,
         family = "Dusha V5"),
-    nudge_y = 0.25, size = 7) +
+    nudge_y = 0.25, size = 6) +
   geom_text(
     data = score_labs,
     aes(x = x, y = y, 
         label = score,
         family = "Dusha V5"),
-    nudge_y = 0.25, size = 6) +
+    nudge_y = 0.25, size = 5.5) +
   geom_text(
     data = goals_labs,
     aes(x = x, y = y, 
         label = scorers,
         family = "Dusha V5"),
-    nudge_y = -0.25, size = 3) +
+    nudge_y = -0.3, size = 3.5) +
+  geom_text(
+    data = points_labs,
+    aes(x = x, y = y, 
+        label = points,
+        family = "Dusha V5"),
+    nudge_x = 0.8,
+    size = 5,
+    color = "grey30") +
   scale_y_reverse(
     expand = c(0, 0), 
     limits = c(4.5, 0.6),
@@ -212,19 +256,14 @@ groupB <- ggplot(
     position = "top", 
     breaks = 1:8,
     labels = x_labs,
-    limits = c(0.5, 8.5)) +
+    limits = c(0.9, 9)) +
   labs(
-    x = "", y = "",
     title = "Group B Table Throughout The Last Matchday",
     subtitle = "Iran vs. Portugal & Spain vs. Morocco",
     caption = "by @R_By_Ryo") +
-  theme_minimal() +
-  theme(
-    text = element_text(family = "Dusha V5", size = 18),
-    legend.position = "none",
-    panel.grid = element_blank())
+  theme_matchday
 
-ggsave(groupB, filename = "groupB_table.png")
+ggsave(groupB, filename = "groupB_table.png", width = 10, height = 5)
 ```
 
 how to emphasize IRAN vs. PORTUGAL and SPAIN sv. MOROCCO   ???
@@ -234,7 +273,7 @@ place scorer name below flags?
 
 ## Group C Standings During Final Matchday!
 
-```{r fig.width=10, fig.height=6}
+```{r fig.width=7, fig.height=5}
 library(dplyr)
 library(ggplot2)
 library(ggimage)
@@ -246,11 +285,11 @@ library(extrafont)
 
 group_c <- data.frame(
 
-  time =      c(1, 2, 3, 4),
-  france =    c(1, 1, 1, 1),
-  denmark =   c(2, 2, 2, 2),
-  australia = c(3, 4, 4, 4),
-  peru =      c(4, 3, 3, 3)
+  time =      c(1, 2, 3),
+  france =    c(1, 1, 1),
+  denmark =   c(2, 2, 2),
+  australia = c(3, 4, 4),
+  peru =      c(4, 3, 3)
   
 )
 
@@ -262,13 +301,13 @@ group_c <- group_c %>%
          flag = team %>% 
            countrycode(., origin = "country.name", destination = "iso2c"))
 
-x_labs <- c("0'", "18'", "50'", "Full Time")
+x_labs <- c("0'", "18'", "Full Time")
 y_labs <- c("1st", "2nd", "3rd", "4th")
 
 score_labs <- data.frame(
-  x = c(2, 3, 4, 4, 4, 4),
-  y = c(3, 3, 1, 2, 3, 4),
-  score = c("1-0", "2-0", "0-0", "0-0", "2-0", "0-2")
+  x = c(2, 3, 3, 3, 3),
+  y = c(3, 1, 2, 3, 4),
+  score = c("1-0", "0-0", "0-0", "2-0", "0-2")
 )
 
 country_labs <- data.frame(
@@ -284,7 +323,7 @@ goals_labs <- data.frame(
 )
 
 points_labs <- data.frame(
-  x = c(4.5, 4.5, 4.5, 4.5),
+  x = c(3.4, 3.4, 3.4, 3.4),
   y = c(1, 2, 3, 4),
   points = c("7 pts.", "5 pts.", "3 pts.", "1 pts.")
 )
@@ -304,13 +343,13 @@ groupC <- ggplot(
     aes(x = x, y = y, 
         label = country,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5.5) +
   geom_text(
     data = score_labs,
     aes(x = x, y = y, 
         label = score,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5.5) +
   geom_text(
     data = goals_labs,
     aes(x = x, y = y, 
@@ -322,7 +361,8 @@ groupC <- ggplot(
     aes(x = x, y = y, 
         label = points,
         family = "Dusha V5"),
-    size = 5) +
+    size = 5,
+    color = "grey30") +
   scale_y_reverse(
     expand = c(0, 0), 
     limits = c(4.5, 0.6),
@@ -330,22 +370,17 @@ groupC <- ggplot(
     labels = y_labs) +
   scale_x_continuous(
     position = "top", 
-    breaks = 1:4,
+    breaks = 1:3,
     labels = x_labs,
     expand = c(0, 0),
-    limits = c(0.7, 4.7)) +
+    limits = c(0.7, 3.6)) +
   labs(
     title = "Group C Table Throughout The Last Matchday",
     subtitle = "Denmark vs. France & Australia vs. Peru",
     caption = "by @R_By_Ryo") +
-  theme_minimal() +
-  theme(
-    text = element_text(family = "Dusha V5", size = 18),
-    axis.title = element_blank(),
-    legend.position = "none",
-    panel.grid = element_blank())
+  theme_matchday
 
-ggsave(groupC, filename = "groupC_table.png")
+ggsave(groupC, filename = "groupC_table.png", width = 7, height = 5)
 ```
 
 
@@ -463,7 +498,7 @@ ggplot(
 
 
 
-```{r fig.width=9, fig.height=5}
+```{r fig.width=8, fig.height=5}
 library(dplyr)
 library(ggplot2)
 library(ggimage)
@@ -494,39 +529,41 @@ group_d <- group_d %>%
 x_labs <- c("0'", "14'", "51'", "53'", "76'", "86'", "Full Time")
 y_labs <- c("1st", "2nd", "3rd", "4th")
 
-score_labs <- data.frame(
-  x = c(2, 3, 4, 5, 6, 7, 7, 7, 7),
-  y = c(2, 2, 4, 3, 2, 1, 2, 3, 4),
-  score = c("1-0", "1-1", "0-1", "1-1", "2-1", 
-            "2-1", "2-1", "1-2", "1-2")
+country_labs <- data.frame(
+  x = c(rep(1, 4)),
+  y = c(rep(1:4, 1)),
+  country = c("Croatia", "Nigeria", "Iceland", "Argentina")
 )
 
-country_labs <- data.frame(
-  x = c(1, 1, 1, 1),
-  y = c(1, 2, 3, 4),
-  country = c("Croatia", "Nigeria", "Iceland", "Argentina")
+score_labs <- data.frame(
+  x = c(2, 3, 4, 5, 6, 
+        7, 7, 7, 7),    # always have score labels for every team at FULL TIME
+  y = c(2, 2, 4, 3, 2, 
+        1, 2, 3, 4),
+  score = c("1-0", "1-1", "0-1", "1-1", "2-1", 
+            "2-1", "2-1", "1-2", "1-2")          # Full Time scores
 )
 
 goals_labs <- data.frame(
   x = c(2, 3, 4, 5, 6, 7),
   y = c(2, 2, 4, 3, 2, 1),
-  scorers = c("Messi", "Moses (pen.)", "(Croatia)\nBadelj", 
-              "G. Sigurdsson (pen.)", "Rojo", "Perisic (90')")
+  scorers = c(
+    "Messi", "Moses (pen.)", "(Croatia)\nBadelj", 
+    "G. Sigurdsson (pen.)", "Rojo", "Perisic (90')")
 )
 
 points_labs <- data.frame(
-  x = c(7.8, 7.8, 7.8, 7.8),
-  y = c(1, 2, 3, 4),
+  x = c(rep(max(group_d$time), 4)),
+  y = c(rep(1:4, 1)),
   points = c("9 pts.", "4 pts.", "3 pts.", "1 pts.")
 )
 
 ## PLOT
 
-groupD <- ggplot(
-  group_d,
-  aes(time, position)) +
+groupD <- ggplot(group_d, aes(time, position)) +
   geom_line(
-    aes(group = team), linetype = "dotted") +
+    aes(group = team), 
+    linetype = "dotted") +
   geom_flag(
     aes(image = flag), 
     size = 0.11) +
@@ -535,25 +572,27 @@ groupD <- ggplot(
     aes(x = x, y = y, 
         label = country,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5) +
   geom_text(
     data = score_labs,
     aes(x = x, y = y, 
         label = score,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5) +
   geom_text(
     data = goals_labs,
     aes(x = x, y = y, 
         label = scorers,
         family = "Dusha V5"),
-    nudge_y = -0.38, size = 4) +
+    nudge_y = -0.38, size = 3.5) +
   geom_text(
     data = points_labs,
     aes(x = x, y = y, 
         label = points,
         family = "Dusha V5"),
-    size = 5) +
+    nudge_x = 0.8,
+    size = 5,
+    color = "grey30") + # match color with the other axes labels!
   scale_y_reverse(
     expand = c(0, 0), 
     limits = c(4.8, 0.6),
@@ -564,25 +603,20 @@ groupD <- ggplot(
     breaks = 1:7,
     labels = x_labs,
     expand = c(0, 0),
-    limits = c(0.4, 8.3)) +
+    limits = c(0.5, 8.1)) +
   labs(
     title = "Group D Table Throughout The Last Matchday",
     subtitle = "Nigeria vs. Argentina & Iceland vs. Croatia",
     caption = "by @R_By_Ryo") +
-  theme_minimal() +
-  theme(
-    text = element_text(family = "Dusha V5", size = 18),
-    axis.title = element_blank(),
-    legend.position = "none",
-    panel.grid = element_blank())
+  theme_matchday
 
-ggsave(groupD, filename = "groupD_table.png")
+ggsave(groupD, filename = "groupD_table.png", width = 8, height = 5)
 ```
 
 
 ## Group E Standings During Final Matchday!
 
-```{r fig.width=8, fig.height=5}
+```{r fig.width=7, fig.height=5}
 library(dplyr)
 library(ggplot2)
 library(ggimage)
@@ -636,7 +670,7 @@ goals_labs <- data.frame(
 )
 
 points_labs <- data.frame(
-  x = c(5.8, 5.8, 5.8, 5.8),
+  x = c(4.5, 4.5, 4.5, 4.5),
   y = c(1, 2, 3, 4),
   points = c("7 pts.", "5 pts.", "3 pts.", "1 pts.")
 )
@@ -656,13 +690,13 @@ groupE <- ggplot(
     aes(x = x, y = y, 
         label = country,
         family = "Dusha V5"),
-    nudge_y = 0.33, size = 6) +
+    nudge_y = 0.33, size = 5.5) +
   geom_text(
     data = score_labs,
     aes(x = x, y = y, 
         label = score,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5.5) +
   geom_text(
     data = goals_labs,
     aes(x = x, y = y, 
@@ -674,7 +708,8 @@ groupE <- ggplot(
     aes(x = x, y = y, 
         label = points,
         family = "Dusha V5"),
-    size = 5) +
+    size = 5,
+    color = "grey30") +
   scale_y_reverse(
     expand = c(0, 0), 
     limits = c(4.8, 0.6),
@@ -685,19 +720,14 @@ groupE <- ggplot(
     breaks = 1:4,
     labels = x_labs,
     expand = c(0, 0),
-    limits = c(0.4, 5.3)) +
+    limits = c(0.6, 4.8)) +
   labs(
     title = "Group E Table Throughout The Last Matchday",
     subtitle = "Serbia vs. Brazil & Switzerland vs. Costa Rica",
     caption = "by @R_By_Ryo") +
-  theme_minimal() +
-  theme(
-    text = element_text(family = "Dusha V5", size = 18),
-    axis.title = element_blank(),
-    legend.position = "none",
-    panel.grid = element_blank())
+  theme_matchday
 
-ggsave(groupE, filename = "groupE_table.png")
+ggsave(groupE, filename = "groupE_table.png", height = 5, width = 7)
 
 ```
 
@@ -758,7 +788,7 @@ goals_labs <- data.frame(
 )
 
 points_labs <- data.frame(
-  x = c(5.8, 5.8, 5.8, 5.8),
+  x = c(5.6, 5.6, 5.6, 5.6),
   y = c(1, 2, 3, 4),
   points = c("6 pts.", "6 pts.", "3 pts.", "3 pts.")
 )
@@ -778,25 +808,26 @@ groupF <- ggplot(
     aes(x = x, y = y, 
         label = country,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5.5) +
   geom_text(
     data = score_labs,
     aes(x = x, y = y, 
         label = score,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5.5) +
   geom_text(
     data = goals_labs,
     aes(x = x, y = y, 
         label = scorers,
         family = "Dusha V5"),
-    nudge_y = -0.25, size = 4) +
+    nudge_y = -0.25, size = 3.5) +
   geom_text(
     data = points_labs,
     aes(x = x, y = y, 
         label = points,
         family = "Dusha V5"),
-    size = 5) +
+    size = 5,
+    color = "grey30") +
   scale_y_reverse(
     expand = c(0, 0), 
     limits = c(4.8, 0.6),
@@ -807,25 +838,20 @@ groupF <- ggplot(
     breaks = 1:5,
     labels = x_labs,
     expand = c(0, 0),
-    limits = c(0.4, 6.3)) +
+    limits = c(0.6, 5.8)) +
   labs(
     title = "Group F Table Throughout The Last Matchday",
     subtitle = "South Korea vs. Germany & Mexico vs. Sweden",
     caption = "by @R_By_Ryo") +
-  theme_minimal() +
-  theme(
-    text = element_text(family = "Dusha V5", size = 18),
-    axis.title = element_blank(),
-    legend.position = "none",
-    panel.grid = element_blank())
+  theme_matchday
 
-ggsave(groupF, filename = "groupF_table.png")
+ggsave(groupF, filename = "groupF_table.png", width = 8, height = 5)
 ```
 
 
 ## Group G Standings During Final Matchday!
 
-```{r fig.width=8, fig.height=5}
+```{r fig.width=7, fig.height=5}
 library(dplyr)
 library(ggplot2)
 library(ggimage)
@@ -877,7 +903,7 @@ goals_labs <- data.frame(
 )
 
 points_labs <- data.frame(
-  x = c(5.8, 5.8, 5.8, 5.8),
+  x = c(4.6, 4.6, 4.6, 4.6),
   y = c(1, 2, 3, 4),
   points = c("9 pts.", "6 pts.", "3 pts.", "0 pts.")
 )
@@ -908,28 +934,29 @@ groupG <- ggplot(
     aes(x = x, y = y, 
         label = country,
         family = "Dusha V5"),
-    nudge_y = 0.37, size = 6) +
+    nudge_y = 0.37, size = 5.5) +
   geom_text(
     data = score_labs,
     aes(x = x, y = y, 
         label = score,
         family = "Dusha V5"),
-    nudge_y = 0.33, size = 6) +
+    nudge_y = 0.33, size = 5.5) +
   geom_text(
     data = goals_labs,
     aes(x = x, y = y, 
         label = scorers,
         family = "Dusha V5"),
-    nudge_y = -0.25, size = 4) +
+    nudge_y = -0.3, size = 3.5) +
   geom_text(
     data = points_labs,
     aes(x = x, y = y, 
         label = points,
         family = "Dusha V5"),
-    size = 5) +
+    size = 5,
+    color = "grey30") +
   scale_y_reverse(
     expand = c(0, 0), 
-    limits = c(4.8, 0.2),
+    limits = c(4.8, 0.4),
     breaks = 1:4,
     labels = y_labs) +
   scale_x_continuous(
@@ -942,14 +969,9 @@ groupG <- ggplot(
     title = "Group G Table Throughout The Last Matchday",
     subtitle = "England vs. Belgium & Panama vs. Tunisia",
     caption = "by @R_By_Ryo") +
-  theme_minimal() +
-  theme(
-    text = element_text(family = "Dusha V5", size = 18),
-    axis.title = element_blank(),
-    legend.position = "none",
-    panel.grid = element_blank())
+  theme_matchday
 
-ggsave(groupG, filename = "groupG_table.png")
+ggsave(groupG, filename = "groupG_table.png", height = 5, width = 7)
 ```
 
 
@@ -958,7 +980,7 @@ ggsave(groupG, filename = "groupG_table.png")
 
 
 
-```{r fig.width=8, fig.height=5}
+```{r fig.width=7, fig.height=5}
 library(dplyr)
 library(ggplot2)
 library(ggimage)
@@ -1010,7 +1032,7 @@ goals_labs <- data.frame(
 )
 
 points_labs <- data.frame(
-  x = c(4.8, 4.8, 4.8, 4.8),
+  x = c(4.5, 4.5, 4.5, 4.5),
   y = c(1, 2, 3, 4),
   points = c("6 pts.", "4 pts.", "4 pts.", "3 pts.")
 )
@@ -1030,25 +1052,26 @@ groupH <- ggplot(
     aes(x = x, y = y, 
         label = country,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5.5) +
   geom_text(
     data = score_labs,
     aes(x = x, y = y, 
         label = score,
         family = "Dusha V5"),
-    nudge_y = 0.3, size = 6) +
+    nudge_y = 0.3, size = 5.5) +
   geom_text(
     data = goals_labs,
     aes(x = x, y = y, 
         label = scorers,
         family = "Dusha V5"),
-    nudge_y = -0.25, size = 4) +
+    nudge_y = -0.25, size = 3.5) +
   geom_text(
     data = points_labs,
     aes(x = x, y = y, 
         label = points,
         family = "Dusha V5"),
-    size = 5) +
+    size = 5,
+    color = "grey30") +
   scale_y_reverse(
     expand = c(0, 0), 
     limits = c(4.8, 0.6),
@@ -1059,22 +1082,23 @@ groupH <- ggplot(
     breaks = 1:4,
     labels = x_labs,
     expand = c(0, 0),
-    limits = c(0.6, 5)) +
+    limits = c(0.7, 4.8)) +
   labs(
     title = "Group H Table Throughout The Last Matchday",
     subtitle = "Japan vs. Poland & Senegal vs. Colombia",
     caption = "by @R_By_Ryo") +
-  theme_minimal() +
-  theme(
-    text = element_text(family = "Dusha V5", size = 18),
-    axis.title = element_blank(),
-    legend.position = "none",
-    panel.grid = element_blank())
+  theme_matchday
 
-ggsave(groupH, filename = "groupH_table.png")
+ggsave(groupH, filename = "groupH_table.png", width = 7, height = 5)
 ```
 
+----------------------------------------------------------------------------------
 
+- take another look at plots >>> fix the margins for ALL OF THEM.
+
+- make not on tie-breakers as caption?? GROUP H
+
+- fix group C + add points to all!
 
 ### not work!
 
