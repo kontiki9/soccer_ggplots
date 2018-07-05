@@ -115,6 +115,100 @@ group_goals %>%
 
 ```
 
+```{r reproducible}
+# i have webscraped some data taht shows numerical times for a few groups. below is a small sample of what it looks like:
+library(tibble)
+
+df <- tribble(
+  ~value,
+  "group a",
+  1,
+  12,
+  56,
+  17,
+  24,
+  "group b",
+  23,
+  1,
+  5,
+  "group c",
+  76,
+  55,
+  89,
+  2,
+  20,
+  "group d",
+  50,
+  23,
+  44,
+  39
+  
+)
+
+# what i want to end up with is as follows:   
+tribble(
+  ~value, ~name,
+  1,     "group a",
+  12,    "group a",
+  56,    "group a",
+  17,    "group a",
+  24,    "group a",
+  23,    "group b",
+  1,     "group c",
+  5,     "group c"
+  # and so on....
+)
+
+# below are my attempts to tidy this data:
+
+df_rows <- df %>% rownames_to_column()
+
+groups <- df_rows %>% select(value) %>% str_extract_all("group [a-z]") %>% as_vector()
+
+# find the rows where data for certain group begins and ends:
+df_length <- df_rows %>% 
+  filter(value %in% groups) %>% 
+  mutate(
+    rowpos = as.numeric(rowname)) %>% 
+  select(-rowname) %>% 
+  rownames_to_column() %>% 
+  mutate(
+    group_start = rowpos + 1, 
+    group_end = lead(rowpos) - 1,
+    group_end = case_when(
+      is.na(group_end) ~ 21,  # manually fill in the 'end row position' for the last group...
+      TRUE ~ group_end
+    )) %>% 
+  select(-rowpos, -rowname)
+
+# Now, I have the row number for where the data for a specific group starts and ends. Along with the original df with rownames as well.
+# How to mutate() in the group names for the rows specified in "groups".
+
+# This can be done by:
+df_rows %>% 
+  slice(df_length$group_start[1]:df_length$group_end[1]) %>% 
+  mutate(groupname = "Group A")
+
+df_rows %>% 
+  slice(goal_length$goal_start[2]:goal_length$goal_end[2]) %>% 
+  mutate(groupname = "Group B")
+
+# and then i can just rbind() each to get the solution that i showed above but not very efficient... i have many groups!
+
+# Use map() or for loops to iterate for EACH group??   below are my attempts but they don't work...
+
+for (i in seq_along(goal_length$value)) {
+  
+  ggoals[i] <- group_goals %>% 
+    slice(goal_length$goal_start[i]:goal_length$goal_end[i]) %>% 
+    mutate(group = paste0("Group", goal_length$value[i]))
+  
+}
+
+1:8 %>% 
+  map2(.x, group_goals, 
+       ~ slice(goal_length$goal_end[.x]:goal_length$goal_end[.x]))
+```
 
 
 

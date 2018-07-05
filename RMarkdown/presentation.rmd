@@ -13,34 +13,68 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 Introduction
+- data analyst + viz
+- why soccer?
 
 Introduction to World Cup
-
-
-Show various viz by others
-
-Talk about DATA for soccer/football sources: WhoScored, Opta, TransferMarkt
-
-Rvest, RSelenium
-
+- talk about Japan's WC journey! SO CLOSE! get more people interested in soccer? YES
+- also by cool visualizations!
 
 "Now this is where the fun begins!" gif
 
-ggsoccer + ggplot2
+MY VIZ
 
-ggimage::geom_emoji, geom_flag
+- joyplot of goals scored in what minutes??
+- data gathering and tidying process
 
-VIZ
+- group table changes during the last matchday!
+- explain about tie-breakers? explain the movement of teams due to goals >>> in own game and other game!
+- countrycode package to find ISO codes!
+- extrafont >>> official "Dusha" font into plots!
+- creating lots of label dataframes... 
+- tough to keep track of how teams WERE and ARE (before/after the event)
+- need to really brainstorm HOW to turn this into a package, but for now a "template" or sorts will have to do...! only need to add-subtract number of columns depending on ranking-changing events!
 
-- static goal recreations
-- shots on goal 
-- formation builder?
+soem groups are full of excitement!! some... Group C... are not! But that's the excitement, you never really know!
+
+- static goal recreations::ggsoccer + ggplot2
+- introduce ggsoccer
+- show empty field
+- manually creating coordinate data points by hand... yeah.
+
+- using a mix of geom_segment and geom_curve to show ball AND player movement
+- Talk about DATA for soccer/football sources: WhoScored, Opta, TransferMarkt
+
+- scrap data from the web: Rvest? RSelenium?
+
+ggimage::geom_emoji for soccer ball image!
+
+ggimage::geom_flag >> use ISO codes to refer to specific flags needed!
 
 
 gganimate
+- show choppy Gazinsky goal
+- explain `frame = time` aes()
+
+segue into making everything run... smooother!
 
 tweenr
+- `tween_elements()`
+- `tween_states()`
+- different easing functions!
+- Gazinsky goal TWEENR!
+- Japan's offside trap! >>>> offside trap meme
 
+Japan's UNIFORMS through the World Cup!
+- talk about Guy Abel's article >>> historicakits.uk    WHY DIDNT I THINK OF DOING THIS!?!?
+
+- using `magick` to transform the images!
+
+
+and maybe i've turned all of you into huge soccer fans... unfortunately, after the final tonight, you're going to have to wait another 4 years for the next one!!
+
+
+---------------------------------------------------
 
 #TidyTuesday
 
