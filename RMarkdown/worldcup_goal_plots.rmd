@@ -12,6 +12,41 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Recreate & Animate Your Favorite World Cup Goals!
 
 
+
+
+## example points
+
+
+```{r}
+library(ggsoccer)
+library(ggplot2)
+
+data <- data.frame(x = 1, y = 1)
+
+ggplot(data) +
+  annotate_pitch() +
+  theme_pitch(aspect_ratio = NULL)
+
+
+point_data <- data.frame(x = c( 100, 83, 100, 83, 88.5, 100, 83, 100, 100),
+                         y = c(   0, 21,  21, 38, 50,    50, 80,  80, 100),
+                         label = c("100, 0", "83, 21", "100, 21", "83, 38", "88.5, 50", "100, 50", "83, 80", "100, 80", "100, 100"))
+
+ggplot(point_data) +
+  annotate_pitch() +
+  theme_pitch(aspect_ratio = NULL) +
+  coord_flip() +
+  geom_point(aes(x = x, y = y), size = 1.5) +
+  geom_text(aes(x= x, y = y,
+                label = label),
+            vjust = 1.5, color = "red")
+
+```
+
+
+
+
+
 ## Gazinsky: First Goal!
 
 ```{r first goal}
@@ -660,7 +695,7 @@ library(countrycode)
 # flags
 flag_data <- data.frame(
   x = c( 48, 87),
-  y = c(117, 117),
+  y = c(107, 107),
   team = c("japan", "senegal")
   ) %>% 
   mutate(
@@ -681,8 +716,8 @@ trap_data <- data.frame(
   y = c(85, 85, 85, 52, 33),
   
   # offside bar
-  xo =    c(83, 81.2, 79, 77.5, 70),
-  xoend = c(83, 81, 77, 75, 70),
+  #xo =    c(83, 81.2, 79, 77.5, 70),
+  xoend = c(83.8, 81.8, 79, 78.5, 71),
   
   yo =    c( 5,  5,  5,  5, 5),
   yoend = c(95, 95, 95, 95, 95),
@@ -736,7 +771,7 @@ g <- ggplot(trap_data) +
   coord_fixed(xlim = c(30, 101),
        ylim = c(-5, 131)) +
   # offside line
-  geom_segment(aes(x = xo, y = yo, 
+  geom_segment(aes(x = xoend, y = yo, 
                    xend = xoend, yend = yoend,
                    frame = time), 
                color = "black", size = 1.3) +
@@ -792,12 +827,12 @@ gganimate(g, "g_ani.gif")
 ```
 
 
-```{r tweenr offside, fig.height=6, fig.width=4}
+```{r tweenr offside, fig.height=10, fig.width=8}
 offside_list <- map(seq(nrow(trap_data)),
                       ~ trap_data[c(seq(.x), rep(.x, nrow(trap_data) - .x)), ])
   
 offside_tween <- offside_list %>% 
-  tween_states(tweenlength = 1.5, statelength = 0.0001, ease = "linear", nframes = 50)
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 50)
 
 off_t <- offside_tween %>% group_by(.frame) %>% slice(5)
 
@@ -805,7 +840,7 @@ g2 <- ggplot(off_t) +
   annotate_pitch() +
   theme_pitch(aspect_ratio = NULL) +
   coord_fixed(xlim = c(30, 101),
-       ylim = c(-5, 131)) +
+              ylim = c(-5, 117)) +
   # offside line
   geom_segment(aes(x = xoend, y = yo, 
                    xend = xoend, yend = yoend,
@@ -831,25 +866,25 @@ g2 <- ggplot(off_t) +
   # free kick spot (reference)
   geom_point(aes(x = 70, y = 85), color = "blue", size = 1.2) +
   annotate(geom = "text", family = "Dusha V5", 
-           hjust = c(0, 0, 0, 0.5),
-           size = c(4.5, 3, 5.5, 3),
+           hjust = c(0, 0, 0.5),
+           size = c(5, 6.5, 3),
            label = c("Japan             (2) vs. Senegal             (2)",
-                     "Mane (11'), Inui (33'), Wague (71'), Honda (78')",
                      "The Perfect Offside Trap",
                      "by Ryo Nakagawara\n(@R_by_Ryo)"),
-           x = c(30, 30, 30, 94), 
-           y = c(117, 108, 125, -3)) +
+           x = c(30,  30, 94), 
+           y = c(107, 115, -3)) +
   ggimage::geom_flag(data = flag_data,
                      aes(x = x, y = y,
                          image = image),       
-                     size = c(0.08, 0.08)) +
+                     size = c(0.09, 0.09)) +
   ggimage::geom_emoji(aes(x = x, y = y, 
                           frame = .frame),
                       image = "26bd", size = 0.035)
 
 gganimate(g2, 
-          interval = 0.001,
-          "offside.gif") 
+          interval = 0.001, height = 10, width = 8,
+          "offside_2.gif", 
+          title_frame = FALSE) 
 
 ```
 

@@ -399,9 +399,12 @@ tweenr: Osako's Winner vs. Colombia!
 
 Japan's Brilliant Offside Trap!
 ========================================================
+
 <center>
-![](https://i.imgur.com/Cvq82Kn.gif)
+<img class="animated-gif" src="https://i.imgur.com/Cvq82Kn.gif">
+
 </center>
+
 
 Bonus: Meme creation
 ========================================================
@@ -456,16 +459,16 @@ jkits_ani_1998 %>%
 Japan's World Cup campaigns through their Uniforms!
 ========================================================
 <center>
-![](https://i.imgur.com/ZE7oGSR.gif)
+![](https://i.imgur.com/UTirZjG.gif)
 </center>
 
-Challenges
+Concluding thoughts
 ========================================================
 
 - Could it be refined further? Sure!
-- Lots of work in limited amount of timwe!
-- Challenged my R skills to its limits!
-- Test yourself by working on something that you truly love!
+- Limited amount of time!
+- Stretched my R skills to its limits!
+- Challenge yourself by working on something that you truly love!
 
 Thank you!
 ========================================================
