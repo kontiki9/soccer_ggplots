@@ -401,7 +401,6 @@ library(tweenr)
 pass_data <- data.frame(
   x = c(100, 94, 82, 82.5,  84, 76.5, 75.5, 94, 99.2),       # pass balls
   y = c(0,   35, 31, 22,     8, 13, 19, 60, 47.5),
-  label = "ball movement",
   time = c(1, 2, 3, 4, 5, 6, 7, 8, 9))
 
 golovin_movement <- data.frame(
@@ -480,6 +479,9 @@ data2 <- data %>% select(-label)
 
 ```
 
+##### remove ALL player label and their coordinate data
+##### have label data move separately in their own tweened' dataframe
+
 
 ```{r Gazinsky ani plot}
 ani <- ggplot(pass_data) +
@@ -553,10 +555,10 @@ data_list <- map(seq(nrow(data2)),
 data_tween <- data_list %>% 
   tween_states(tweenlength = 2, statelength = 1.25, ease = "linear", nframes = 200)
 
-
+data_t <- data_tween %>% group_by(.frame) %>% slice(27)
 # plot
 
-gazinsky_goal <- data_tween %>% 
+gazinsky_goal <- data_t %>% 
   ggplot() +
   annotate_pitch() +
   theme_pitch() +
@@ -633,11 +635,16 @@ PR for formations function?
 Try more advanced soccer play-by-play animations?
 
 Recreate famous World Cup goals of the past? (Maradona vs. England?)
+```{r}
+#<center>
+#![](https://upload.wikimedia.org/wikipedia/en/thumb/6/67/2018_FIFA_World_Cup.svg/1200px-2018_FIFA_World_Cup.svg.png)
+#</center>
+```
 
 
 ## Japan's Offside Trap!
 
-```{r fig.height=6, fig.width=4}
+```{r offside data, fig.height=6, fig.width=4}
 library(ggplot2)
 library(dplyr)
 library(ggsoccer)
@@ -774,7 +781,7 @@ g
 
 ```
 
-```{r fig.height=6, fig.width=4}
+```{r offside gganimate, fig.height=6, fig.width=4}
 # vline for offside line
 # x1 Ja, x2 Sen
 # sligh twiggle before kick? 
@@ -785,10 +792,7 @@ gganimate(g, "g_ani.gif")
 ```
 
 
-
-
-
-```{r fig.height=6, fig.width=4}
+```{r tweenr offside, fig.height=6, fig.width=4}
 offside_list <- map(seq(nrow(trap_data)),
                       ~ trap_data[c(seq(.x), rep(.x, nrow(trap_data) - .x)), ])
   
@@ -803,7 +807,7 @@ g2 <- ggplot(off_t) +
   coord_fixed(xlim = c(30, 101),
        ylim = c(-5, 131)) +
   # offside line
-  geom_segment(aes(x = xo, y = yo, 
+  geom_segment(aes(x = xoend, y = yo, 
                    xend = xoend, yend = yoend,
                    frame = .frame), 
                color = "black", size = 1.3) +

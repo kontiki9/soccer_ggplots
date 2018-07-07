@@ -55,8 +55,68 @@ group_goals <- url %>%
 ```
 
 
+```{r clean}
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(purrr)
+
+group_goals_raw <- read.csv("group_goals.csv", stringsAsFactors = FALSE)
+
+group_goals <- group_goals_raw %>% 
+  mutate(name = if_else(startsWith(value, "Group"), value, NA_character_)) %>% 
+  fill(name) %>% 
+  filter(value != name)
+
+group_goals %>% 
+  mutate(value = str_replace_all(value, "'", "")) %>% 
+  mutate(value = str_replace_all(value, "\\(([^)]+)\\)", "")) %>% 
+  separate(value, into = c("minute", "extra"), sep = "\\+") %>% 
+  mutate(minute = as.numeric(minute),
+         extra = as.numeric(extra))
+  
+  mutate(sum = if_else(!is.na(extra), ))
+
+
+```
 
 ```{r}
+group_goals %>% 
+  mutate(value = str_replace_all(value, "'", "")) %>% 
+  mutate(value = str_replace_all(value, "\\(([^)]+)\\)", ""))
+```
+
+
+
+
+```{r joyplot}
+library(ggridges)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r attempt true}
 library(dplyr)
 library(tidyr)
 library(stringr)
@@ -213,7 +273,65 @@ for (i in seq_along(goal_length$value)) {
 
 
 
-```{r}
+
+## Solution
+
+```{r solution}
+library(tibble)
+
+df <- tribble(
+  ~value,
+  "group a",
+  1,
+  12,
+  56,
+  17,
+  24,
+  "group b",
+  23,
+  1,
+  5,
+  "group c",
+  76,
+  55,
+  89,
+  2,
+  20,
+  "group d",
+  50,
+  23,
+  44,
+  39
+  
+)
+
+
+glimpse(df)
+
+library(tidyverse)
+
+df %>% 
+  mutate(name = if_else(startsWith(value, "group"), value, NA_character_)) %>% 
+  fill(name) %>% 
+  filter(value != name)
+
+
+# alt
+
+group_rows <- which(startsWith(df$value, "group"))
+group_labels <- df$value[group_rows]
+group_start <- group_rows + 1
+group_end <- c(group_rows[-1] - 1, length(df$value))
+
+
+
+```
+
+
+
+
+
+```{r attempt 1}
 
 for (i in seq_along(goal_length$value)) {
   
@@ -237,10 +355,6 @@ group_goals %>%
 
 by_slice()
 
-```
-
-
-```{r}
 
 1:8 %>% 
   map2(.x, group_goals, 
@@ -262,39 +376,4 @@ group_goals %>%
 
 
 ```
-
-grab rowname pos for each group
-
-slice rows between each group into separate cols
-
-
-
-
-```{r}
-library(ggridges)
-
-
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

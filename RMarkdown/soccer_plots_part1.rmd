@@ -67,7 +67,7 @@ pass_data <- data.frame(x = c( 84, 82),
                         x2 = c(77, 84),
                         y2 = c(13, 8))
 
-#                            corner kick + golovin cross
+#            corner kick + golovin cross
 curve_data <- data.frame(x = c(100, 76),
                          y = c(0, 19),
                          x2 = c(94, 94),
