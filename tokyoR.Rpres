@@ -188,6 +188,9 @@ Exciting!
 
 Recreating the goals of the World Cup!
 ========================================================
+class: small-code
+- `ggsoccer` package by [Ben Torvaney](https://github.com/Torvaney/ggsoccer)
+
 <center>
 ```{r fig.height = 4}
 library(ggplot2)
@@ -219,6 +222,13 @@ Finding data
 <center>
 ![](https://i.imgur.com/fDWbYLc.png)
 </center>
+
+
+ggsoccer coordinate positions
+========================================================
+
+
+
 
 What some of the data frames look like...
 ========================================================
@@ -294,13 +304,13 @@ ggplot(goals_data) +
 The first goal of the World Cup!
 ========================================================
 <center>
-![](https://i.imgur.com/5XcPhaw.png)
+![](https://i.imgur.com/nZBZR5g.png)
 </center>
 
 Cristiano's hattrick!
 ========================================================
 <center>
-![](https://i.imgur.com/gVnNdXD.png)
+![](https://i.imgur.com/iFFOotS.png)
 </center>
 
 
@@ -334,7 +344,7 @@ geom_flag(data = flag_data,
 Osako's Winner vs. Colombia!
 ========================================================
 <center>
-![](https://i.imgur.com/REKFYPR.png)
+![](https://i.imgur.com/QTeqoyk.png)
 </center>
 
 Animate goals?
@@ -390,18 +400,29 @@ tweenr
 
 ![](https://i.imgur.com/rnkF13w.png)
 
+tweenr: Gazinsky's Goal vs. Saudi Arabia
+========================================================
+
+<center>
+<img class="animated-gif" src="https://i.imgur.com/g3tUqVp.gif">
+
+</center>
+
+
 tweenr: Osako's Winner vs. Colombia!
 ========================================================
 
 <center>
-![](https://i.imgur.com/pPCzA3M.gif)
+<img class="animated-gif" src="https://i.imgur.com/H27DmgX.gif">
+
 </center>
+
 
 Japan's Brilliant Offside Trap!
 ========================================================
 
 <center>
-<img class="animated-gif" src="https://i.imgur.com/Cvq82Kn.gif">
+<img class="animated-gif" src="https://i.imgur.com/upwh3A2.gif">
 
 </center>
 
@@ -428,8 +449,8 @@ Animating changes in soccer uniforms
 
 ![](https://guyabel.com/img/abel-england.gif)
 
-- Guy Abel's awesome blog post from early June!
-- [Link](https://guyabel.com/post/football-kits/)
+- Guy Abel's awesome [blog post](https://guyabel.com/post/football-kits/) from early June!
+
 
 Using `magick` to manipulate images
 ========================================================
@@ -473,7 +494,7 @@ Concluding thoughts
 
 Thank you!
 ========================================================
-- Twitter: [@R-by_Ryo](https://twitter.com/R_by_Ryo)
+- Twitter: [@R_by_Ryo](https://twitter.com/R_by_Ryo)
 - GitHub repo: [soccer_ggplots](https://github.com/Ryo-N7/soccer_ggplots)
 - World Cup viz blog posts (and other topics): 
 <p>https://ryo-n7.github.io/</p>
