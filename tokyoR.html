@@ -791,14 +791,24 @@ hljs.initHighlightingOnLoad();
 .small-code pre code {
   font-size: 1em;
 }
-</style>
 
-<style>
+
 .midcenter {
     position: fixed;
     top: 50%;
     left: 50%;
 }
+
+img.animated-gif{
+  width: 1020px;
+  height: auto;
+}
+
+img.anim-gif{
+  width: 600px;
+  height: auto;
+}
+
 </style>
 
 </div>
@@ -826,14 +836,6 @@ Ryo Nakagawara
 
 </section>
 <section data-transition="linear" data-transition-speed="default">
-
-<div class="slideContent noTitle" >
-<p>[]()</p>
-
-</div>
-
-</section>
-<section data-transition="linear" data-transition-speed="default">
 <h3>Agenda:</h3>
 <div class="slideContent" >
 <ul>
@@ -841,6 +843,34 @@ Ryo Nakagawara
 <li>Recreating Goals with <code>ggsoccer</code> and <code>ggplot2</code></li>
 <li>Animating the Goals of the World Cup!</li>
 <li>Explore Japan&#39;s World Cup history through their team uniforms</li>
+</ul>
+
+<p><center>
+<img src="http://www.fotballblogg1.com/wp-content/uploads/2015/07/russia-2018.jpg" alt=""/>
+</center></p>
+
+</div>
+
+</section>
+<section data-transition="linear" data-transition-speed="default">
+
+<div class="slideContent noTitle" >
+<p><center>
+<img class="animated-gif" src="https://i.imgur.com/HAB8qVA.gif"></p>
+
+<p></center></p>
+
+</div>
+
+</section>
+<section data-transition="linear" data-transition-speed="default">
+<h3>FIFA World Cup: 2018 (Russia):</h3>
+<div class="slideContent" >
+<ul>
+<li>32 national teams from all 5 continents</li>
+<li>Group stage and Knock-out rounds</li>
+<li>8 groups of 4 teams each</li>
+<li>Last pair of games for each group happen at the same time!</li>
 </ul>
 
 <p><center>
@@ -863,13 +893,16 @@ Ryo Nakagawara
 <section data-transition="linear" data-transition-speed="default">
 <h3>Find ISO codes with the `countrycode` package!</h3>
 <div class="slideContent small-code" >
-<pre><code class="r">group_d &lt;- group_d %&gt;% 
+<pre><code class="r">library(countrycode)
+
+group_d &lt;- group_d %&gt;% 
   gather(team, position, -time) %&gt;% 
-  mutate(team = as.factor(team),
-         team = fct_relevel(team, 
-                            &quot;croatia&quot;, &quot;nigeria&quot;, &quot;argentina&quot;, &quot;iceland&quot;),
-         flag = team %&gt;% 
-           countrycode(., origin = &quot;country.name&quot;, destination = &quot;iso2c&quot;))
+  mutate(
+    team = as.factor(team),
+    team = fct_relevel(team, 
+                       &quot;croatia&quot;, &quot;nigeria&quot;, &quot;argentina&quot;, &quot;iceland&quot;),
+    flag = team %&gt;% 
+      countrycode::countrycode(., origin = &quot;country.name&quot;, destination = &quot;iso2c&quot;))
 
 glimpse(group_d)
 </code></pre>
@@ -996,7 +1029,11 @@ y_labs &lt;- c(&quot;1st&quot;, &quot;2nd&quot;, &quot;3rd&quot;, &quot;4th&quot
 </section>
 <section data-transition="linear" data-transition-speed="default">
 <h3>Recreating the goals of the World Cup!</h3>
-<div class="slideContent" >
+<div class="slideContent small-code" >
+<ul>
+<li><code>ggsoccer</code> package by <a href="https://github.com/Torvaney/ggsoccer">Ben Torvaney</a></li>
+</ul>
+
 <p><center></p>
 
 <pre><code class="r">library(ggplot2)
@@ -1026,6 +1063,16 @@ ggplot(data) +
 
 <p><center>
 <img src="https://i.imgur.com/fDWbYLc.png" alt=""/>
+</center></p>
+
+</div>
+
+</section>
+<section data-transition="linear" data-transition-speed="default">
+<h3>ggsoccer coordinate positions</h3>
+<div class="slideContent" >
+<p><center>
+<img src="data:image/png;base64,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" alt="plot of chunk unnamed-chunk-3"/>
 </center></p>
 
 </div>
@@ -1102,10 +1149,22 @@ curve_data &lt;- data.frame(x = c(100, 76),
 
 </section>
 <section data-transition="linear" data-transition-speed="default">
-<h3>The first goal of the World Cup!</h3>
+<h3>The first goal of the World Cup: Actual footage!</h3>
+<div class="slideContent" >
+<p><center></p>
+
+<iframe width="854" height="480" src="https://www.youtube.com/embed/mE79PUhe1_8" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+
+<p></center></p>
+
+</div>
+
+</section>
+<section data-transition="linear" data-transition-speed="default">
+<h3>The first goal of the World Cup: Recreation!</h3>
 <div class="slideContent" >
 <p><center>
-<img src="https://i.imgur.com/5XcPhaw.png" alt=""/>
+<img src="https://i.imgur.com/nZBZR5g.png" alt=""/>
 </center></p>
 
 </div>
@@ -1115,7 +1174,7 @@ curve_data &lt;- data.frame(x = c(100, 76),
 <h3>Cristiano&#x27;s hattrick!</h3>
 <div class="slideContent" >
 <p><center>
-<img src="https://i.imgur.com/gVnNdXD.png" alt=""/>
+<img src="https://i.imgur.com/iFFOotS.png" alt=""/>
 </center></p>
 
 </div>
@@ -1142,6 +1201,34 @@ geom_flag(data = flag_data,
 ## ggplot2 code ##
 </code></pre>
 
+</div>
+
+</section>
+<section data-transition="linear" data-transition-speed="default">
+<h3>Flags in the title</h3>
+<div class="slideContent small-code" >
+<pre><code class="r">## annotation code ##
+c(&quot;Portugal             (3) vs. Spain            (3)&quot;)
+## annotation code ##
+</code></pre>
+
+<pre><code class="r">flag_data &lt;- data.frame(
+  image = c(&quot;PT&quot;, &quot;ES&quot;),
+  x = c(110, 110),
+  y = c(19.1, 50.3)
+)
+
+## ggplot2 code ##
+geom_flag(data = flag_data,
+          aes(x = x, y = y,
+              image = image, size = size))  
+## ggplot2 code ##
+</code></pre>
+
+<p><center>
+<img src="https://i.imgur.com/NdEBasA.gif">
+</center></p>
+
 <ul>
 <li>VERY hacky solution but it works!</li>
 </ul>
@@ -1150,38 +1237,10 @@ geom_flag(data = flag_data,
 
 </section>
 <section data-transition="linear" data-transition-speed="default">
-<h3>emoji</h3>
-<div class="slideContent small-code" >
-<pre><code class="r">library(emoGG)
-library(ggimage)
-
-emoji_search(&quot;soccer&quot;) # &quot;26bd&quot;
-</code></pre>
-
-<pre><code>       emoji             code  keyword
-2537  soccer             26bd   sports
-2538  soccer             26bd football
-4130       o             2b55   circle
-4131       o             2b55    round
-5234 eritrea 1f1ea\\U0001f1f7       er
-5956 somalia 1f1f8\\U0001f1f4       so
-</code></pre>
-
-<pre><code class="r">## ggplot2 code ##
-ggimage::geom_emoji(aes(x = 105, 
-                        y = c(45, 50, 55)),
-                    image = &quot;26bd&quot;, size = 0.035)
-## ggplot2 code ##
-</code></pre>
-
-</div>
-
-</section>
-<section data-transition="linear" data-transition-speed="default">
 <h3>Osako&#x27;s Winner vs. Colombia!</h3>
 <div class="slideContent" >
 <p><center>
-<img src="https://i.imgur.com/REKFYPR.png" alt=""/>
+<img src="https://i.imgur.com/QTeqoyk.png" alt=""/>
 </center></p>
 
 </div>
@@ -1212,8 +1271,9 @@ ggimage::geom_emoji(aes(x = 105,
 <h3>With just gganimate:</h3>
 <div class="slideContent" >
 <p><center>
-<img src="https://i.imgur.com/GibXz36.gif" alt=""/>
-</center></p>
+<img class="animated-gif" src="https://i.imgur.com/GibXz36.gif"></p>
+
+<p></center></p>
 
 </div>
 
@@ -1253,11 +1313,23 @@ ggimage::geom_emoji(aes(x = 105,
 
 </section>
 <section data-transition="linear" data-transition-speed="default">
+<h3>tweenr: Gazinsky&#x27;s Goal vs. Saudi Arabia</h3>
+<div class="slideContent" >
+<p><center>
+<img class="animated-gif" src="https://i.imgur.com/g3tUqVp.gif"></p>
+
+<p></center></p>
+
+</div>
+
+</section>
+<section data-transition="linear" data-transition-speed="default">
 <h3>tweenr: Osako&#x27;s Winner vs. Colombia!</h3>
 <div class="slideContent" >
 <p><center>
-<img src="https://i.imgur.com/pPCzA3M.gif" alt=""/>
-</center></p>
+<img class="animated-gif" src="https://i.imgur.com/H27DmgX.gif"></p>
+
+<p></center></p>
 
 </div>
 
@@ -1266,8 +1338,9 @@ ggimage::geom_emoji(aes(x = 105,
 <h3>Japan&#x27;s Brilliant Offside Trap!</h3>
 <div class="slideContent" >
 <p><center>
-<img src="https://i.imgur.com/Cvq82Kn.gif" alt=""/>
-</center></p>
+<img class="animated-gif" src="https://i.imgur.com/upwh3A2.gif"></p>
+
+<p></center></p>
 
 </div>
 
@@ -1296,8 +1369,7 @@ meme(img, meme_labs, &quot;offside_meme.png&quot;)
 <p><img src="https://guyabel.com/img/abel-england.gif" alt=""/></p>
 
 <ul>
-<li>Guy Abel&#39;s awesome blog post from early June!</li>
-<li><a href="https://guyabel.com/post/football-kits/">Link</a></li>
+<li>Guy Abel&#39;s awesome <a href="https://guyabel.com/post/football-kits/">blog post</a> from early June!</li>
 </ul>
 
 </div>
@@ -1312,7 +1384,8 @@ meme(img, meme_labs, &quot;offside_meme.png&quot;)
 <li><code>image_animate()</code></li>
 </ul>
 
-<pre><code class="r">for(i in 2:length(kit_list_1998$img)){
+<pre><code class="r"># 1998 World Cup
+for(i in 2:length(kit_list_1998$img)){
   kits_morph0 &lt;- image_morph(c(kit_list_1998$img[i-1], kit_list_1998$img[i]), frames = 4)
 
   kits_morph1 &lt;- image_morph(c(kit_list_1998$img[i], kit_list_1998$img[i]), frames = 8)
@@ -1332,21 +1405,24 @@ jkits_ani_1998 %&gt;%
 
 </section>
 <section data-transition="linear" data-transition-speed="default">
-<h3>Japan&#x27;s World Cup campaigns through their Uniforms!</h3>
+<h3>Japan&#x27;s World Cup History!</h3>
 <div class="slideContent" >
-<p>[]()</p>
+<p><center>
+<img class="anim-gif" src="https://i.imgur.com/UTirZjG.gif">
+</center></p>
 
 </div>
 
 </section>
 <section data-transition="linear" data-transition-speed="default">
-<h3>Challenges</h3>
+<h3>Final remarks</h3>
 <div class="slideContent" >
 <ul>
-<li>Could it be refined further? Sure!</li>
-<li>Lots of work in limited amount of timwe!</li>
-<li>Challenged my R skills to its limits!</li>
-<li>Test yourself by working on something that you truly love!</li>
+<li>Stretched my R skills to its limits!</li>
+<li>Challenge yourself by working on something that you truly love!
+<center>
+<img src="https://i.imgur.com/u6bv8Bo.jpg" alt=""/>
+</center></li>
 </ul>
 
 </div>
@@ -1356,7 +1432,7 @@ jkits_ani_1998 %&gt;%
 <h3>Thank you!</h3>
 <div class="slideContent" >
 <ul>
-<li>Twitter: <a href="https://twitter.com/R_by_Ryo">@R-by_Ryo</a></li>
+<li>Twitter: <a href="https://twitter.com/R_by_Ryo">@R_by_Ryo</a></li>
 <li>GitHub repo: <a href="https://github.com/Ryo-N7/soccer_ggplots">soccer_ggplots</a></li>
 <li>World Cup viz blog posts (and other topics): 
 <p><a href="https://ryo-n7.github.io/">https://ryo-n7.github.io/</a></p></li>

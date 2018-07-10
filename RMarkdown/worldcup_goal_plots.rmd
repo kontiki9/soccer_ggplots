@@ -17,22 +17,16 @@ knitr::opts_chunk$set(echo = TRUE)
 ## example points
 
 
-```{r}
+```{r echo=FALSE, fig.width=8, fig.height=5}
 library(ggsoccer)
 library(ggplot2)
 
-data <- data.frame(x = 1, y = 1)
+point_data <- data.frame(x = c( 100, 83, 100, 83, 88.5, 100,  83, 83, 100, 100),
+                         y = c(   0, 21,  21, 38, 50,    50,  62, 80,  80, 100),
+                         label = c("100, 0", "83, 21", "100, 21", "83, 38", "88.5, 50", 
+                                   "100, 50", "83, 62", "83, 80", "100, 80", "100, 100"))
 
-ggplot(data) +
-  annotate_pitch() +
-  theme_pitch(aspect_ratio = NULL)
-
-
-point_data <- data.frame(x = c( 100, 83, 100, 83, 88.5, 100, 83, 100, 100),
-                         y = c(   0, 21,  21, 38, 50,    50, 80,  80, 100),
-                         label = c("100, 0", "83, 21", "100, 21", "83, 38", "88.5, 50", "100, 50", "83, 80", "100, 80", "100, 100"))
-
-ggplot(point_data) +
+field <- ggplot(point_data) +
   annotate_pitch() +
   theme_pitch(aspect_ratio = NULL) +
   coord_flip() +
@@ -40,7 +34,7 @@ ggplot(point_data) +
   geom_text(aes(x= x, y = y,
                 label = label),
             vjust = 1.5, color = "red")
-
+ggsave(field, filename = "field.png", width = 8, height = 5)
 ```
 
 
@@ -344,36 +338,33 @@ gganimate(g, "osako_ani.gif")
 
 ```{r osako tween, fig.height = 5, fig.width = 7}
 # TWEEN
-
+library(ggplot2)
+library(dplyr)
+library(ggsoccer)
+library(extrafont)
+library(emoGG)
+library(ggimage)
+library(gganimate)
 library(purrr)
 library(tweenr)
 
+player_label <- data.frame(x = c(92, 97), 
+                           y = c(48, 0))
 
+wc_logo <- data.frame(x = 107,
+                       y = 85) %>% 
+  mutate(image = "https://upload.wikimedia.org/wikipedia/en/thumb/6/67/2018_FIFA_World_Cup.svg/1200px-2018_FIFA_World_Cup.svg.png")
+
+# tweenr the ball movement data
 ball_data <- data.frame(x = c(99, 94, 100),
                         y = c(0.3, 47, 55.5))
 
-ball_list <- map(seq(nrow(ball_data)),
-                      ~ ball_data[c(seq(.x), rep(.x, nrow(ball_data) - .x)), ])
+ball_list <- ball_data %>% pmap(data.frame)
   
 osako_tween <- ball_list %>% 
   tween_states(tweenlength = 1.5, statelength = 0.01, ease = "quadratic-out", nframes = 50)
 
-os_t <- osako_tween %>% group_by(.frame) %>% slice(3)
-# take only changed 3rd value (1 and 2 of each frame are just copies of ball point origin coords)
-
-ball_data <- data.frame(x = c(99, 94, 100),
-                        y = c(0.3, 47, 55.5),
-                        time = c(1, 2, 3))
-
-
-ball_data <- ball_data %>% 
-  mutate(group = rep(1:50, 1),
-         ease = rep("linear", 3))
-
-osako_tween2 <- tween_elements(ball_data, "time", "group", "ease",
-                               nframes = 150)
-
-g2 <- ggplot(os_t) +
+g2 <- ggplot(osako_tween) +
   annotate_pitch() +
   theme_pitch() +
   theme(text = element_text(family = "Dusha V5")) +
@@ -415,11 +406,8 @@ gganimate(g2,
 gganimate(g2, title_frame = FALSE,
           width = 700, height = 500, 
           interval = 0.01,
-          "osako_222.gif") 
+          "osako_tween_final.gif") 
 
-# multiple balls appearing after every pause...?????? >>> fixed see above ost_t!
-# fix how create list of df and tween_elements() >>> so original 2 points DONT show for each frame.
-# quadratic-out is the closest so far...
 ```
 
 
@@ -787,6 +775,7 @@ library(ggimage)
 library(extrafont)
 library(gganimate)
 library(tweenr)
+library(purrr)
 # loadfonts()
 
 # data
@@ -830,7 +819,8 @@ segment_data <- data.frame(
 
 saudi_data <- data.frame(
   x = c(95),
-  y = c(35)
+  y = c(35),
+  label = "M. Al-Breik"
 )
 
 ### soccer ball
@@ -848,33 +838,28 @@ ball_data <- tribble(
   
 ) 
 
-ball_list <- map(seq(nrow(ball_data)),
-                      ~ ball_data3[c(seq(.x), rep(.x, nrow(ball_data) - .x)), ])
-  
-ball_tween <- ball_list %>% 
-  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
+## THIS WORKS USE THIS.
+b_list <- ball_data %>% pmap(data.frame)
 
-data_t <- ball_tween %>% group_by(.frame) %>% slice(9)
+ball_tween <- b_list %>% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
 
 ### Golovin
 
-golovin_movement_list <- map(seq(nrow(golovin_movement)),
-                      ~golovin_movement[c(seq(.x), rep(.x, nrow(golovin_movement) - .x)), ])
+golovin_movement_list <- golovin_movement %>% pmap(data.frame)
   
 golovin_tween <- golovin_movement_list %>% 
   tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
 
-golo_t <- golovin_tween %>% group_by(.frame) %>% slice(9)
+golovin_tween <- golovin_tween %>% mutate(label = "Golovin")
 
 ### Zhirkov
-zhirkov_movement_list <- map(seq(nrow(zhirkov_movement)),
-                      ~zhirkov_movement[c(seq(.x), rep(.x, nrow(zhirkov_movement) - .x)), ])
+zhirkov_movement_list <- zhirkov_movement %>% pmap(data.frame)
   
 zhirkov_tween <- zhirkov_movement_list %>% 
   tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
 
-zhir_t <- zhirkov_tween %>% group_by(.frame) %>% slice(9)
-
+zhirkov_tween <- zhirkov_tween %>% mutate(label = "Zhirkov")
 
 ### PLOT
 
@@ -889,16 +874,15 @@ gazin_move <- ggplot(pass_data) +
                size = segment_data$size,
                color = segment_data$color,
                linetype = c("dashed", "dashed")) +
-  geom_point(
+  geom_label(
     data = saudi_data,
-    aes(x = x, y = y),
-    color = "darkgreen",
-    size = 5) +
-  geom_label(data = zhir_t,
+    aes(x = x, y = y,
+        label = label)) +
+  geom_label(data = zhirkov_tween,
     aes(x = x, y = y,
         frame = .frame,
         label = label)) +
-  geom_label(data = golo_t,
+  geom_label(data = golovin_tween,
     aes(x = x, y = y,
         frame = .frame,
         label = label)) +
@@ -907,7 +891,7 @@ gazin_move <- ggplot(pass_data) +
     aes(x = x, y = y,
         label = label)) +
   ggimage::geom_emoji(
-    data = data_t,
+    data = ball_tween,
     aes(x = x, y = y, frame = .frame),    # change frame to .frame or it'll still move by time only -_-
     image = "26bd", size = 0.035) +
   ggtitle(label = "Russia (5) vs. (0) Saudi Arabia", 
@@ -919,7 +903,13 @@ gazin_move <- ggplot(pass_data) +
 gganimate(gazin_move, 
           width = 8, height = 6, 
           title_frame = FALSE, interval = 0.25, 
-          "gazin_move.gif")
+          "gazinsky_goal_final.gif")
+
+gganimate(gazin_move, 
+          width = 8, height = 6, 
+          title_frame = FALSE, interval = 0.25, 
+          "gazin_move.mp4")
+
 ```
 
 
@@ -1098,15 +1088,12 @@ flag_data <- data.frame(
   ) %>% 
   select(-team)
 
-offside_list <- map(seq(nrow(trap_data)),
-                      ~ trap_data[c(seq(.x), rep(.x, nrow(trap_data) - .x)), ])
+offside_list <- trap_data %>% pmap(data.frame)
   
 offside_tween <- offside_list %>% 
   tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 50)
 
-off_t <- offside_tween %>% group_by(.frame) %>% slice(5)
-
-g2 <- ggplot(off_t) +
+g2 <- ggplot(offside_tween) +
   annotate_pitch() +
   theme_pitch(aspect_ratio = NULL) +
   coord_fixed(xlim = c(30, 101),
@@ -1153,7 +1140,7 @@ g2 <- ggplot(off_t) +
 
 gganimate(g2, 
           interval = 0.001, height = 10, width = 8,
-          "offside_3.gif", 
+          "offside_final.gif", 
           title_frame = FALSE) 
 
 ```

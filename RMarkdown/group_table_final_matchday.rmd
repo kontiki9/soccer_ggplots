@@ -450,7 +450,8 @@ ggplot(
     aes(group = team), linetype = "dotted") +
   geom_flag(
     aes(image = flag), 
-    size = 0.11) +
+    size = 0.11,
+    color = "black") +
   geom_text(
     aes(x = c(xcountry, xscore), y = c(ycountry, yscore), 
         label = c(country, score),
@@ -559,14 +560,16 @@ points_labs <- data.frame(
 )
 
 ## PLOT
-
+# size 0.11, color does NOT put borders around flags...
 groupD <- ggplot(group_d, aes(time, position)) +
   geom_line(
     aes(group = team), 
-    linetype = "dotted") +
+    linetype = "dotted",
+    size = 1.1) +
   geom_flag(
-    aes(image = flag), 
-    size = 0.11) +
+    aes(image = flag,
+        by = "height"),
+    size = 0.1) +
   geom_text(
     data = country_labs,
     aes(x = x, y = y, 
@@ -608,11 +611,11 @@ groupD <- ggplot(group_d, aes(time, position)) +
     title = "Group D Table Throughout The Last Matchday",
     subtitle = "Nigeria vs. Argentina & Iceland vs. Croatia",
     caption = "by @R_By_Ryo") +
-  theme_matchday
+  theme_matchday +
+  theme(plot.background = element_rect(fill = 'lightgrey'))
 
 ggsave(groupD, filename = "groupD_table.png", width = 8, height = 5)
 ```
-
 
 ## Group E Standings During Final Matchday!
 

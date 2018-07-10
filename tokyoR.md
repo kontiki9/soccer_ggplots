@@ -2,7 +2,7 @@ Visualizing the World Cup with R!
 ========================================================
 author: Ryo Nakagawara
 date: July 15th, 2018
-autosize: false
+autosize: true
 
 <style>
 .small-code pre code {
@@ -20,6 +20,12 @@ img.animated-gif{
   width: 1020px;
   height: auto;
 }
+
+img.anim-gif{
+  width: 600px;
+  height: auto;
+}
+
 </style>
 
 
@@ -56,6 +62,18 @@ Agenda:
 
 </center>
 
+FIFA World Cup: 2018 (Russia):
+========================================================
+- 32 national teams from all 5 continents
+- Group stage and Knock-out rounds
+- 8 groups of 4 teams each
+- Last pair of games for each group happen at the same time!
+
+<center>
+![](http://www.fotballblogg1.com/wp-content/uploads/2015/07/russia-2018.jpg)
+</center>
+
+
 ========================================================
 <center>
 ![](https://i.imgur.com/FlntjgH.png)
@@ -68,13 +86,16 @@ class: small-code
 
 
 ```r
+library(countrycode)
+
 group_d <- group_d %>% 
   gather(team, position, -time) %>% 
-  mutate(team = as.factor(team),
-         team = fct_relevel(team, 
-                            "croatia", "nigeria", "argentina", "iceland"),
-         flag = team %>% 
-           countrycode(., origin = "country.name", destination = "iso2c"))
+  mutate(
+    team = as.factor(team),
+    team = fct_relevel(team, 
+                       "croatia", "nigeria", "argentina", "iceland"),
+    flag = team %>% 
+      countrycode::countrycode(., origin = "country.name", destination = "iso2c"))
 
 glimpse(group_d)
 ```
@@ -226,8 +247,9 @@ Finding data
 ggsoccer coordinate positions
 ========================================================
 
-
-
+<center>
+![plot of chunk unnamed-chunk-3](tokyoR-figure/unnamed-chunk-3-1.png)
+</center>
 
 What some of the data frames look like...
 ========================================================
@@ -298,7 +320,14 @@ ggplot(goals_data) +
   geom_text(aes(x = x, y = y, label = label, family = "Dusha V5"))
 ```
 
-The first goal of the World Cup!
+The first goal of the World Cup: Actual footage!
+========================================================
+
+<center>
+<iframe width="854" height="480" src="https://www.youtube.com/embed/mE79PUhe1_8" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+</center>
+
+The first goal of the World Cup: Recreation!
 ========================================================
 <center>
 ![](https://i.imgur.com/nZBZR5g.png)
@@ -336,8 +365,34 @@ geom_flag(data = flag_data,
 ## ggplot2 code ##
 ```
 
-- VERY hacky solution but it works!
+Flags in the title
+========================================================
+class: small-code
 
+```r
+## annotation code ##
+c("Portugal             (3) vs. Spain            (3)")
+## annotation code ##
+```
+
+
+```r
+flag_data <- data.frame(
+  image = c("PT", "ES"),
+  x = c(110, 110),
+  y = c(19.1, 50.3)
+)
+
+## ggplot2 code ##
+geom_flag(data = flag_data,
+          aes(x = x, y = y,
+              image = image, size = size))  
+## ggplot2 code ##
+```
+<center>
+<img src="https://i.imgur.com/NdEBasA.gif">
+</center>
+- VERY hacky solution but it works!
 
 Osako's Winner vs. Colombia!
 ========================================================
@@ -461,6 +516,7 @@ class: small-code
 
 
 ```r
+# 1998 World Cup
 for(i in 2:length(kit_list_1998$img)){
   kits_morph0 <- image_morph(c(kit_list_1998$img[i-1], kit_list_1998$img[i]), frames = 4)
   
@@ -477,19 +533,22 @@ jkits_ani_1998 %>%
   image_write(path = "japan_versus_kit_1998.gif")
 ```
 
-Japan's World Cup campaigns through their Uniforms!
+Japan's World Cup History!
 ========================================================
+
 <center>
-![](https://i.imgur.com/UTirZjG.gif)
+<img class="anim-gif" src="https://i.imgur.com/UTirZjG.gif">
 </center>
 
-Concluding thoughts
+
+Final remarks
 ========================================================
 
-- Could it be refined further? Sure!
-- Limited amount of time!
 - Stretched my R skills to its limits!
 - Challenge yourself by working on something that you truly love!
+<center>
+![](https://i.imgur.com/u6bv8Bo.jpg)
+</center>
 
 Thank you!
 ========================================================
