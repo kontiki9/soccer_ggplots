@@ -67,8 +67,8 @@ FIFA World Cup: 2018 (Russia):
 - 32 national teams from all 5 continents
 - Group stage and Knock-out rounds
 - 8 groups of 4 teams each
+- 3 pts = WIN, 1 pts = DRAW, 0 pts = LOSS
 - Last pair of games for each group happen at the same time!
-
 <center>
 ![](http://www.fotballblogg1.com/wp-content/uploads/2015/07/russia-2018.jpg)
 </center>
@@ -82,6 +82,9 @@ FIFA World Cup: 2018 (Russia):
 Find ISO codes with the `countrycode` package!
 ========================================================
 class: small-code
+
+- `countrycode` package by [Vincent Arel-Bundock](https://github.com/vincentarelbundock/countrycode)
+
 ```{r initial df, echo = FALSE}
 library(dplyr)
 library(tidyr)
@@ -470,8 +473,33 @@ pass_data <- data.frame(
 
 tweenr
 ========================================================
+class: small-code
 
-![](https://i.imgur.com/rnkF13w.png)
+```{r eval=FALSE}
+### ball movement
+b_list <- ball_data %>% pmap(data.frame)
+
+ball_tween <- b_list %>% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
+
+### Golovin movement
+
+golovin_movement_list <- golovin_movement %>% pmap(data.frame)
+  
+golovin_tween <- golovin_movement_list %>% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
+
+golovin_tween <- golovin_tween %>% mutate(label = "Golovin")
+
+### Zhirkov movement
+zhirkov_movement_list <- zhirkov_movement %>% pmap(data.frame)
+  
+zhirkov_tween <- zhirkov_movement_list %>% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
+
+zhirkov_tween <- zhirkov_tween %>% mutate(label = "Zhirkov")
+```
+
 
 tweenr: Gazinsky's Goal vs. Saudi Arabia
 ========================================================

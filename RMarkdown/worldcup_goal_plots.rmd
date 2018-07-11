@@ -52,10 +52,10 @@ library(extrafont)
 # loadfonts()
 
 #                              2   1  
-pass_data <- data.frame(x = c( 84, 82),
-                        y = c(  6, 32),
-                        x2 = c(77, 84),
-                        y2 = c(13, 8))
+pass_data <- data.frame(x = c( 84, 82, 94),
+                        y = c(  6, 32, 35),
+                        x2 = c(77, 84, 83),
+                        y2 = c(13, 8 , 32.5))
 
 #                            corner kick + golovin cross
 curve_data <- data.frame(x = c(100, 76),
@@ -63,11 +63,11 @@ curve_data <- data.frame(x = c(100, 76),
                          x2 = c(94, 94),
                          y2 = c(35, 60))
 
-# Saudi failed clearance, Gazinsky header
-ball_data <- data.frame(x = c(94, 94),
-                        y = c(35, 60),
-                        x2 = c(82, 99.2),
-                        y2 = c(33.5, 47.5))
+# Gazinsky header
+ball_data <- data.frame(x = c(94),
+                        y = c(60),
+                        x2 = c(99.2),
+                        y2 = c(47.5))
 
 # soccer ball image
 goal_img <- data.frame(x = 100,
@@ -80,6 +80,12 @@ movement_data <- data.frame(x = c(83, 98),
                            x2 = c(77, 88),
                            y2 = c(21, 6))
 
+saudi_data <- data.frame(
+  x = c(96.5),
+  y = c(35),
+  label = "M. Al-Breik"
+)
+
 g <- ggplot(pass_data) +
   annotate_pitch() +
   geom_segment(aes(x = x, y = y, xend = x2, yend = y2),
@@ -88,11 +94,11 @@ g <- ggplot(pass_data) +
   geom_segment(data = ball_data,
                aes(x = x, y = y, xend = x2, yend = y2), 
                linetype = "dashed", size = 0.85,
-               color = c("black", "red")) +
+               color = "red") +
   geom_segment(data = movement_data,
                aes(x = x, y = y, xend = x2, yend = y2), 
                linetype = "dashed", size = 1.2,
-               color = "darkgreen") +
+               color = "black") +
   geom_curve(data = curve_data, 
              aes(x = x, y = y, xend = x2, yend = y2), 
              curvature = 0.25, 
@@ -103,18 +109,33 @@ g <- ggplot(pass_data) +
                  image = image), 
              size = 0.035) +
   theme_pitch() + 
-  theme(text = element_text(family = "Trebuchet MS")) +
+  theme(text = element_text(family = "Dusha V5")) +
   coord_flip(xlim = c(49, 101),
              ylim = c(-1, 101)) +
   ggtitle(label = "Russia (5) vs. (0) Saudi Arabia", 
           subtitle = "First goal, Yuri Gazinsky (12th Minute)") +
   labs(caption = "By Ryo Nakagawara (@R_by_Ryo)") +
-  geom_label(aes(x = 94, y = 60, label = "Gazinsky"), hjust = -0.1) +
-  geom_label(aes(x = 83, y = 23, label = "Golovin"), hjust = -0.05) +
-  geom_label(aes(x = 75, y = 11, label = "Golovin"), hjust = -0.1) +
-  geom_label(aes(x = 98, y = 0, label = "Zhirkov"), vjust = -0.3) +
-  geom_label(aes(x = 84, y = 6, label = "Zhirkov"), vjust = -0.3) +
-  annotate("text", x = 69, y = 65, family = "Trebuchet MS",
+  geom_label(aes(x = 94, y = 60, 
+                 label = "Gazinsky"), 
+             hjust = -0.1, color = "red", family = "Dusha V5") +
+  geom_label(aes(x = 83, y = 23, 
+                 label = "Golovin"), 
+             hjust = -0.05, color = "red", family = "Dusha V5") +
+  geom_label(aes(x = 75, y = 11, 
+                 label = "Golovin"), 
+             hjust = -0.1, color = "red", family = "Dusha V5") +
+  geom_label(aes(x = 98, y = 0, 
+                 label = "Zhirkov"), 
+             vjust = -0.3, color = "red", family = "Dusha V5") +
+  geom_label(aes(x = 84, y = 6, 
+                 label = "Zhirkov"), 
+             vjust = -0.3, color = "red", family = "Dusha V5") +
+  geom_label(
+    data = saudi_data,
+    aes(x = x, y = y,
+        label = label),
+    color = "darkgreen", family = "Dusha V5") +
+  annotate("text", x = 69, y = 65, family = "Dusha V5",
            label = "After a poor corner kick clearance\n from Saudi Arabia, Golovin picks up the loose ball, \n exchanges a give-and-go pass with Zhirkov\n before finding Gazinsky with a beautiful cross!")
 
 ggsave(g, filename = "gazinsky_goal.png", height = 6, width = 8)
@@ -813,7 +834,7 @@ segment_data <- data.frame(
   xend = c(75, 84),
   yend = c(15, 3),
   linetype = c("dashed", "dashed"),
-  color = c("darkgreen", "darkgreen"),
+  color = c("black", "black"),
   size = c(1.2, 1.25)
 )
 
@@ -877,28 +898,33 @@ gazin_move <- ggplot(pass_data) +
   geom_label(
     data = saudi_data,
     aes(x = x, y = y,
-        label = label)) +
+        label = label),
+    color = "darkgreen") +
   geom_label(data = zhirkov_tween,
     aes(x = x, y = y,
         frame = .frame,
-        label = label)) +
+        label = label),
+    color = "red") +
   geom_label(data = golovin_tween,
     aes(x = x, y = y,
         frame = .frame,
-        label = label)) +
+        label = label),
+    color = "red") +
   geom_label(
     data = gazinsky_movement,
     aes(x = x, y = y,
-        label = label)) +
+        label = label),
+    color = "red") +
   ggimage::geom_emoji(
     data = ball_tween,
-    aes(x = x, y = y, frame = .frame),    # change frame to .frame or it'll still move by time only -_-
+    aes(x = x, y = y, frame = .frame),   
     image = "26bd", size = 0.035) +
   ggtitle(label = "Russia (5) vs. (0) Saudi Arabia", 
           subtitle = "First goal, Yuri Gazinsky (12th Minute)") +
   labs(caption = "By Ryo Nakagawara (@R_by_Ryo)") +
   annotate("text", x = 69, y = 65, family = "Dusha V5",
-           label = "After a poor corner kick clearance\n from Saudi Arabia, Golovin picks up the loose ball, \n exchanges a give-and-go pass with Zhirkov\n before finding Gazinsky with a beautiful cross!")
+           label = "After a poor corner kick clearance\n from Saudi Arabia, Golovin picks up the loose ball, \n exchanges a give-and-go pass with Zhirkov\n before finding Gazinsky with a beautiful cross!") +
+  theme(text = element_text(family = "Dusha V5"))
 
 gganimate(gazin_move, 
           width = 8, height = 6, 
