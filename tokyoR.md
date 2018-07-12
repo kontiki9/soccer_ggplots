@@ -333,7 +333,7 @@ The first goal of the World Cup: Actual footage!
 The first goal of the World Cup: Recreation!
 ========================================================
 <center>
-![](https://i.imgur.com/nZBZR5g.png)
+![](https://i.imgur.com/7tRZnm7.png)
 </center>
 
 Cristiano's hattrick!
@@ -422,7 +422,7 @@ class: mid-center
 With just gganimate:
 ========================================================
 <center>
-<img class="animated-gif" src="https://i.imgur.com/GibXz36.gif">
+<img class="animated-gif" src="https://i.imgur.com/V9drm0I.gif">
 
 </center>
 
@@ -488,7 +488,7 @@ tweenr: Gazinsky's Goal vs. Saudi Arabia
 ========================================================
 
 <center>
-<img class="animated-gif" src="https://i.imgur.com/g3tUqVp.gif">
+<img class="animated-gif" src="https://i.imgur.com/HpkcS0g.gif">
 
 </center>
 
