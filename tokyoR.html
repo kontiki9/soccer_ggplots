@@ -826,7 +826,7 @@ Ryo Nakagawara
 <ul>
 <li>Education: Chapman University, University College London</li>
 <li>Psychology, Economics</li>
-<li>Work: Data Analytics and Viz Consultant @ ACDI/VOCA</li>
+<li>Work: Data Analytics and Viz Consultant @ <a href="http://www.acdivoca.org/">ACDI/VOCA</a></li>
 <li>Interests: Soccer/Football/Fútbol</li>
 </ul>
 
@@ -870,12 +870,12 @@ Ryo Nakagawara
 <li>32 national teams from all 5 continents</li>
 <li>Group stage and Knock-out rounds</li>
 <li>8 groups of 4 teams each</li>
-<li>Last pair of games for each group happen at the same time!</li>
-</ul>
-
-<p><center>
+<li>3 pts = WIN, 1 pts = DRAW, 0 pts = LOSS</li>
+<li>Last pair of games for each group happen at the same time!
+<center>
 <img src="http://www.fotballblogg1.com/wp-content/uploads/2015/07/russia-2018.jpg" alt=""/>
-</center></p>
+</center></li>
+</ul>
 
 </div>
 
@@ -893,6 +893,10 @@ Ryo Nakagawara
 <section data-transition="linear" data-transition-speed="default">
 <h3>Find ISO codes with the `countrycode` package!</h3>
 <div class="slideContent small-code" >
+<ul>
+<li><code>countrycode</code> package by <a href="https://github.com/vincentarelbundock/countrycode">Vincent Arel-Bundock</a></li>
+</ul>
+
 <pre><code class="r">library(countrycode)
 
 group_d &lt;- group_d %&gt;% 
@@ -1164,7 +1168,7 @@ curve_data &lt;- data.frame(x = c(100, 76),
 <h3>The first goal of the World Cup: Recreation!</h3>
 <div class="slideContent" >
 <p><center>
-<img src="https://i.imgur.com/nZBZR5g.png" alt=""/>
+<img src="https://i.imgur.com/7tRZnm7.png" alt=""/>
 </center></p>
 
 </div>
@@ -1271,7 +1275,7 @@ geom_flag(data = flag_data,
 <h3>With just gganimate:</h3>
 <div class="slideContent" >
 <p><center>
-<img class="animated-gif" src="https://i.imgur.com/GibXz36.gif"></p>
+<img class="animated-gif" src="https://i.imgur.com/V9drm0I.gif"></p>
 
 <p></center></p>
 
@@ -1306,8 +1310,30 @@ geom_flag(data = flag_data,
 </section>
 <section data-transition="linear" data-transition-speed="default">
 <h3>tweenr</h3>
-<div class="mediaOnly slideContent" >
-<p><img src="https://i.imgur.com/rnkF13w.png" alt=""/></p>
+<div class="slideContent small-code" >
+<pre><code class="r">### ball movement
+b_list &lt;- ball_data %&gt;% pmap(data.frame)
+
+ball_tween &lt;- b_list %&gt;% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = &quot;linear&quot;, nframes = 75)
+
+### Golovin movement
+
+golovin_movement_list &lt;- golovin_movement %&gt;% pmap(data.frame)
+
+golovin_tween &lt;- golovin_movement_list %&gt;% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = &quot;linear&quot;, nframes = 75)
+
+golovin_tween &lt;- golovin_tween %&gt;% mutate(label = &quot;Golovin&quot;)
+
+### Zhirkov movement
+zhirkov_movement_list &lt;- zhirkov_movement %&gt;% pmap(data.frame)
+
+zhirkov_tween &lt;- zhirkov_movement_list %&gt;% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = &quot;linear&quot;, nframes = 75)
+
+zhirkov_tween &lt;- zhirkov_tween %&gt;% mutate(label = &quot;Zhirkov&quot;)
+</code></pre>
 
 </div>
 
@@ -1316,7 +1342,7 @@ geom_flag(data = flag_data,
 <h3>tweenr: Gazinsky&#x27;s Goal vs. Saudi Arabia</h3>
 <div class="slideContent" >
 <p><center>
-<img class="animated-gif" src="https://i.imgur.com/g3tUqVp.gif"></p>
+<img class="animated-gif" src="https://i.imgur.com/HpkcS0g.gif"></p>
 
 <p></center></p>
 

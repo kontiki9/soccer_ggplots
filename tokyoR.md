@@ -40,7 +40,7 @@ Ryo Nakagawara
 <font size = "14">
 - Education: Chapman University, University College London
 - Psychology, Economics
-- Work: Data Analytics and Viz Consultant @ ACDI/VOCA
+- Work: Data Analytics and Viz Consultant @ [ACDI/VOCA](http://www.acdivoca.org/)
 - Interests: Soccer/Football/Fútbol
 
 </font>
@@ -184,11 +184,11 @@ goals_labs <- data.frame(
 Potential package...?
 ========================================================
 <font size = "15">
-- Liable to make a typo
-<p>
-- Need to brainstorm how to turn into a series of functions... a R package!
+- Need to brainstorm how to turn into a series of functions... an R package!
 <p>
 - For now, this "template" will have to do.
+<p>
+- Lots of backtracking and figuring out where teams were ranked at different times!
 </font>
 
 
@@ -459,6 +459,9 @@ class: small-code
 
 
 ```r
+library(tweenr)
+library(purrr)
+
 ### ball movement
 b_list <- ball_data %>% pmap(data.frame)
 
@@ -488,7 +491,7 @@ tweenr: Gazinsky's Goal vs. Saudi Arabia
 ========================================================
 
 <center>
-<img class="animated-gif" src="https://i.imgur.com/HpkcS0g.gif">
+<img class="animated-gif" src="https://i.imgur.com/GQYSJSH.gif">
 
 </center>
 
