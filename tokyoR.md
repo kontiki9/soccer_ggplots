@@ -509,7 +509,7 @@ Japan's Brilliant Offside Trap!
 ========================================================
 
 <center>
-<img class="animated-gif" src="https://i.imgur.com/upwh3A2.gif">
+<img class="animated-gif" src="https://i.imgur.com/ceSA3YB.gif">
 
 </center>
 

@@ -143,6 +143,8 @@ kits_ani %>%
 
 ## Japan World Cup uniforms
 
+- example with just japan uniforms
+
 ```{r}
 library(magick)
 
@@ -184,47 +186,15 @@ jkits_ani %>%
 
 
 
+## Combine kits for every match sid-by-side
 
-
-
-
-
-Combine kits for every match sid-by-side
-
-
-```{r}
-library(magick)
-library(dplyr)
-library(purrr)
-library(extrafont)
-#loadfonts()
-
-japan_kits <- list.files(path = "../japan_kits/1998/", pattern = "*.gif", full.names = TRUE) %>% 
-  map(image_read) %>% 
-  image_join()
-
-# combine together side-by-side
-
-japan_kits %>% image_append() # all 4 kits in one img
-
-kit_labels <- data_frame(
-  label = c("Japan (1) vs. (0) Argentina", "Japan (0) vs. (1) Croatia", "Japan (1) vs. (2) Jamaica")
-)
-
-japan_kits[c(4, 1:3)] %>% image_append()
-
-japan_kits %>% 
-  map2(4, 1:3, ~ image_append)
-
-japan_kits[c(4, 3)] %>% 
-  image_append() %>% 
-  image_border(geometry = "10x40", color = "white") %>% 
-  image_annotate(text = kit_labels$label, 
-                 gravity = "south", location = "+0+300",
-                 font = "Trebuchet MS", size = 30)
-
-
-```
+- Read in uniforms (kit_read() function)
+- Stitch them up with respective opponent uniforms
+- add labels + increase border size
+- Loop through image_morph()
+- Find LAST frame of previous and FIRST frame of current
+- image_morph() those two frames for smooth transition between last game of World Cup and first game of next World Cup!
+- repeat to 2018
 
 ```{r kit_read fun}
 kit_read <- function(path) {
@@ -850,44 +820,6 @@ jj5 <- append(jkits_ani_ALL$img, jkits_ani_ALL_ch, 282)
 jj5 %>% 
   image_animate(fps = 10) %>% 
   image_write(path = "japan_TEST5_history.gif")
-
-```
-
-
-```{r map() 2018}
-# image_morph each of the match img
-
-japan_ani_2018 <- image_morph(c(kit_list_2018$img[1], kit_list_2018$img[1]), frame = 10)
-
-kits_morph_j0 <- 2:3 %>% 
-  map(~ image_morph(c(kit_list_2018$img[.x-1], kit_list_2018$img[.x]), frames = 10)) %>% 
-  image_join()
-
-kits_morph_j1 <- 2:3 %>% 
-  map(~ image_morph(c(kit_list_2010$img[.x], kit_list_2010$img[.x]), frames = 10)) %>% 
-  image_join()
-
-jkits_ani_2018 <- c(japan_ani_2018, kits_morph_j0)
-#jkits_ani <- c(jkits_ani, kits_morph_j1)  #  need to integrate PAUSE with morph anims
-
-## as function?
-
-
-
-```
-
-
-### COMBINE ALL 
-
-a bit choppy >>> make morph transitions between WCs...!
-
-```{r combine ALL}
-
-jkits_ani_ALL <- c(jkits_ani_1998, jkits_ani_2002, jkits_ani_2006, jkits_ani_2010, jkits_ani_2014, jkits_ani_2018)
-
-jkits_ani_ALL %>% 
-  image_animate(fps = 10) %>% 
-  image_write(path = "japan_WC_history.gif")
 
 ```
 
