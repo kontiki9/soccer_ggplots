@@ -120,7 +120,7 @@ glimpse(group_d)
 Official World Cup 2018 font: "Dusha"!
 ========================================================
 
-- Download and install the `.TFF` file
+- Download and install the `.TTF` file
 - Use the `extrafont` package to use custom fonts in R!
 
 ```{r extrafont, eval=FALSE}
@@ -187,14 +187,13 @@ goals_labs <- data.frame(
 
 Potential package...?
 ========================================================
-<font size = "15">
+<font size = "13">
 - Need to brainstorm how to turn into a series of functions... an R package!
 <p>
 - For now, this "template" will have to do.
 <p>
 - Lots of backtracking and figuring out where teams were ranked at different times!
 </font>
-
 
 Exciting!
 ========================================================
@@ -345,14 +344,14 @@ ggplot(goals_data) +
 
 ```
 
-The first goal of the World Cup: Actual footage!
+The first goal of the World Cup:
 ========================================================
 
 <center>
 <iframe width="854" height="480" src="https://www.youtube.com/embed/mE79PUhe1_8" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
 </center>
 
-The first goal of the World Cup: Recreation!
+The first goal of the World Cup:
 ========================================================
 <center>
 ![](https://i.imgur.com/7tRZnm7.png)
@@ -467,7 +466,7 @@ pass_data <- data.frame(
 ```
 
 - Add some kind of __time__ variable in your dataframe!
-- Have coordinate points for the ball/players at the specified times
+- Have coordinate points for the ball/players at each of the specified times
 - Refer to it with the `frame` argument in the geom you want animated
 - But we can do better...
 
@@ -601,10 +600,10 @@ Final remarks
 
 Thank you!
 ========================================================
-- Twitter: [@R_by_Ryo](https://twitter.com/R_by_Ryo)
-- GitHub repo: [soccer_ggplots](https://github.com/Ryo-N7/soccer_ggplots)
+- GitHub repo: [Ryo-N7/soccer_ggplots](https://github.com/Ryo-N7/soccer_ggplots)
 - World Cup viz blog posts (and other topics): 
 <p>https://ryo-n7.github.io/</p>
+- Twitter: [@R_by_Ryo](https://twitter.com/R_by_Ryo)
 - Translate World Cup viz blog posts into 日本語... soon?
 
 

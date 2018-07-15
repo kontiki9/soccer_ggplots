@@ -721,7 +721,7 @@ jj4 %>%
 
 
 
-```{r}
+```{r map() 2014}
 # image_morph each of the match img
 
 japan_ani_2014 <- image_morph(c(kit_list_2014$img[1], kit_list_2014$img[1]), frame = 10)

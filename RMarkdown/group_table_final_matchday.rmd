@@ -1097,11 +1097,7 @@ ggsave(groupH, filename = "groupH_table.png", width = 7, height = 5)
 
 ----------------------------------------------------------------------------------
 
-- take another look at plots >>> fix the margins for ALL OF THEM.
 
-- make not on tie-breakers as caption?? GROUP H
-
-- fix group C + add points to all!
 
 ### not work!
 

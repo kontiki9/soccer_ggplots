@@ -926,7 +926,7 @@ $ flag     &lt;chr&gt; &quot;HR&quot;, &quot;HR&quot;, &quot;HR&quot;, &quot;HR&
 <h3>Official World Cup 2018 font: &quot;Dusha&quot;!</h3>
 <div class="slideContent" >
 <ul>
-<li>Download and install the <code>.TFF</code> file</li>
+<li>Download and install the <code>.TTF</code> file</li>
 <li>Use the <code>extrafont</code> package to use custom fonts in R!</li>
 </ul>
 
@@ -997,14 +997,14 @@ y_labs &lt;- c(&quot;1st&quot;, &quot;2nd&quot;, &quot;3rd&quot;, &quot;4th&quot
 <section data-transition="linear" data-transition-speed="default">
 <h3>Potential package...?</h3>
 <div class="slideContent" >
-<p><font size = "15"></p>
+<p><font size = "13"></p>
 
 <ul>
-<li>Liable to make a typo
-<p></li>
-<li>Need to brainstorm how to turn into a series of functions&hellip; a R package!
+<li>Need to brainstorm how to turn into a series of functions&hellip; an R package!
 <p></li>
 <li>For now, this &ldquo;template&rdquo; will have to do.
+<p></li>
+<li>Lots of backtracking and figuring out where teams were ranked at different times!
 </font></li>
 </ul>
 
@@ -1153,7 +1153,7 @@ curve_data &lt;- data.frame(x = c(100, 76),
 
 </section>
 <section data-transition="linear" data-transition-speed="default">
-<h3>The first goal of the World Cup: Actual footage!</h3>
+<h3>The first goal of the World Cup:</h3>
 <div class="slideContent" >
 <p><center></p>
 
@@ -1165,7 +1165,7 @@ curve_data &lt;- data.frame(x = c(100, 76),
 
 </section>
 <section data-transition="linear" data-transition-speed="default">
-<h3>The first goal of the World Cup: Recreation!</h3>
+<h3>The first goal of the World Cup:</h3>
 <div class="slideContent" >
 <p><center>
 <img src="https://i.imgur.com/7tRZnm7.png" alt=""/>
@@ -1300,7 +1300,7 @@ geom_flag(data = flag_data,
 
 <ul>
 <li>Add some kind of <strong>time</strong> variable in your dataframe!</li>
-<li>Have coordinate points for the ball/players at the specified times</li>
+<li>Have coordinate points for the ball/players at each of the specified times</li>
 <li>Refer to it with the <code>frame</code> argument in the geom you want animated</li>
 <li>But we can do better&hellip;</li>
 </ul>
@@ -1311,7 +1311,10 @@ geom_flag(data = flag_data,
 <section data-transition="linear" data-transition-speed="default">
 <h3>tweenr</h3>
 <div class="slideContent small-code" >
-<pre><code class="r">### ball movement
+<pre><code class="r">library(tweenr)
+library(purrr)
+
+### ball movement
 b_list &lt;- ball_data %&gt;% pmap(data.frame)
 
 ball_tween &lt;- b_list %&gt;% 
@@ -1342,7 +1345,7 @@ zhirkov_tween &lt;- zhirkov_tween %&gt;% mutate(label = &quot;Zhirkov&quot;)
 <h3>tweenr: Gazinsky&#x27;s Goal vs. Saudi Arabia</h3>
 <div class="slideContent" >
 <p><center>
-<img class="animated-gif" src="https://i.imgur.com/HpkcS0g.gif"></p>
+<img class="animated-gif" src="https://i.imgur.com/GQYSJSH.gif"></p>
 
 <p></center></p>
 
@@ -1364,7 +1367,7 @@ zhirkov_tween &lt;- zhirkov_tween %&gt;% mutate(label = &quot;Zhirkov&quot;)
 <h3>Japan&#x27;s Brilliant Offside Trap!</h3>
 <div class="slideContent" >
 <p><center>
-<img class="animated-gif" src="https://i.imgur.com/upwh3A2.gif"></p>
+<img class="animated-gif" src="https://i.imgur.com/ceSA3YB.gif"></p>
 
 <p></center></p>
 
@@ -1458,10 +1461,10 @@ jkits_ani_1998 %&gt;%
 <h3>Thank you!</h3>
 <div class="slideContent" >
 <ul>
-<li>Twitter: <a href="https://twitter.com/R_by_Ryo">@R_by_Ryo</a></li>
-<li>GitHub repo: <a href="https://github.com/Ryo-N7/soccer_ggplots">soccer_ggplots</a></li>
+<li>GitHub repo: <a href="https://github.com/Ryo-N7/soccer_ggplots">Ryo-N7/soccer_ggplots</a></li>
 <li>World Cup viz blog posts (and other topics): 
 <p><a href="https://ryo-n7.github.io/">https://ryo-n7.github.io/</a></p></li>
+<li>Twitter: <a href="https://twitter.com/R_by_Ryo">@R_by_Ryo</a></li>
 <li>Translate World Cup viz blog posts into 日本語&hellip; soon?</li>
 </ul>
 
