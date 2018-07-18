@@ -9,30 +9,69 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Shots on Goal: On + Off Target
-
-```{r shots on goal}
-
-```
+Animating the Goals of the World Cup: Comparing the old vs. new gganimate and tweenr API!
 
 
-## Formation and line-ups
+Hello all, welcome to Part 3 of my series on Visualizing the World Cup with R! This is the culmination of this mini project I've been working on throughout the World Cup. In addition, from having listened to Thomas Pedersen's excellent keynote on the NEW gganimate and tweenr API I am taking advantage of this fortuitous timing to also compare the APIs using one of my goals as an example!
 
-make function for set formations 
-- all you need to do is pass player names and formation string ("3-5-2", "4-4-2", etc.)
-- later version: player icon with uniform (like in Wikipedia)
+## raison d'etre
 
-```{r formations}
+Several people have asked me where I got the data. I thought I made it quite clear in Part 1 but I will reiterate in the next few paragraphs.
 
-```
+wonderful visualizations by - - - - -
+
+BUT WAIT
+
+can a average joe like me just waltz in, slap down a fiver and say SO GIMME THE DATA?
+
+NO >>>> costs #`$$$`#
+
+jealous of those who have the financial backing to procure such data and mild annoyance at others who didn't really bother with sharing exactly HOW they got their data I went to work... 
+
+fueled by my desire to make some soccer viz , that no one has seen before...! 
+
+unable to be able to master RSelenium before the World Cup ends when my visualizations would have the most IMPACT and also not being able to win the lottery in that time as well... I did the unthinkable: create the coordinate data positions myself!
+
+![]() thanos I'll do it myself gif
+
+With the easy plotting system in ggsoccer and ggplot2 it's really not that hard to find out the positions yourself as you can see in the picture below
+
+![]() soccer plot positions pic
+
+Of course, there's also a way to make the coordinates be in 120x80 format (which is much more intuitive looking at a rectangular field) and there is an option for it by  ____ . however, i only realized this after I've embedded the positionings for the 100x100 plot in my head so that's what i kept going with. 
+
+There is also the ____ which allows you to mouse-click specific points on the field and then download a .csv file of the coordinates. This might be easier but personally I like to experiment within the R environment and take notes/ideas in RMarkdown as I do so but it definitely is an option for others.
+
+... and that's how [Part 1]() was born! But I wasn't going to stop there, soccer is a moving - flowing game, static images are OK but it just doesn't capture the FEEL of the sport!
+
+
+## Gazinsky's first goal:
+
+Out of all the World Cup events I've animated so far, by far the most complicated is Gazinsky's goal in the opening game. This is because we not only have the ball movement but player movement as well! Also, by using the new API I wanted to experiment with fading out players who aren't important to the play at certain moments in time. So most of the **comparison** aspect of the APIs will be done with this goal.
 
 
 
-## VAR Decisions
+## With gganimate + tweenr
 
-```{r var }
 
-```
+
+
+
+
+## With NEW gganimate + tweenr
+
+
+
+
+## Personal thoughts:
+
+
+
+
+
+## Osako's goal vs. Colombia
+
+
 
 
 ## Japan's Offside Trap!
