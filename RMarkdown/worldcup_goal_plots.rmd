@@ -329,7 +329,7 @@ ball_data <- tribble(
   
 ) 
 
-## THIS WORKS USE THIS.
+### ball movement
 b_list <- ball_data %>% pmap(data.frame)
 
 ball_tween <- b_list %>% 

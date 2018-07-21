@@ -12,7 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 Animating the Goals of the World Cup: Comparing the old vs. new gganimate and tweenr API!
 
 
-Hello all, welcome to Part 3 of my series on Visualizing the World Cup with R! This is the culmination of this mini project I've been working on throughout the World Cup. In addition, from having listened to Thomas Pedersen's excellent keynote on the NEW gganimate and tweenr API I am taking advantage of this fortuitous timing to also compare the APIs using one of my goals as an example!
+Welcome to Part 3 of my series on Visualizing the World Cup with R! This is the culmination of this mini project that I've been working on throughout the World Cup. In addition, from having listened to Thomas Pedersen's excellent keynote on the NEW gganimate and tweenr API, I am taking advantage of this fortuitous timing to also compare the APIs using the goals as the examples!
+
+I've had finished these a cople of weeks ago but didn't make them publically available until I presented at the TokyoR user group last week! Hadley Wickham and Joe Rickert were the special guests and with the amount of speakers and attendees it felt more like a mini-conference than a regular meetup. You can check out a recording of my talk on [Youtube]()! 
+
 
 ## raison d'etre
 
@@ -53,15 +56,23 @@ Out of all the World Cup events I've animated so far, by far the most complicate
 
 ## With gganimate + tweenr
 
-```{r echo=FALSE}
-library(ggplot2)
-library(dplyr)
-library(ggsoccer)
-library(ggimage)
-library(extrafont)
-library(gganimate)
-# loadfonts()
+Let's take a look at the packages that I'll be using:
 
+```{r packages}
+library(ggplot2)    # general plotting base
+library(dplyr)      # data manipulation/tidying
+library(ggsoccer)   # draw soccer field plot
+library(ggimage)    # add soccer ball emoji + flags
+library(extrafont)  # incorporate Dusha font into plots
+library(gganimate)  # animate goal plots
+library(tweenr)     # create in-between frames for data
+library(purrr)      # for creating a list of dataframes for tweenr
+# loadfonts()         run once every new session
+```
+
+
+
+```{r echo=FALSE}
 # data
 pass_data <- data.frame(
   x = c(100, 94, 82, 82.5,  84, 76.5, 75.5, 94, 99.2),       # pass balls
@@ -177,10 +188,87 @@ gganimate(gazin_ani,
 ```
 
 
+Now let's check out how we would do it with tweenr added in!
+
+The important bit with the old API was taht you had to create a list of dataframes of the different states of your data. In this case, it is a dataframe for each row of the data or to put it more simply, the "time" variable (a dataframe of coordinate positions for time = 1, time = 2, etc.). This is done with `pmap()` to create a dataframe for each row. 
+
+With this list of dataframes created, we can pass it into `tween_states()` function to create the in-between frames to connect each of the dataframes in the list. Take note of the arguments in `tweent_states()` as they'll show up again in the new API later.
+
+```{r}
+### soccer ball
+b_list <- ball_data %>% pmap(data.frame)
+
+ball_tween <- b_list %>% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
+
+### Golovin
+
+golovin_movement_list <- golovin_movement %>% pmap(data.frame)
+  
+golovin_tween <- golovin_movement_list %>% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
+
+golovin_tween <- golovin_tween %>% mutate(label = "Golovin")
+
+### Zhirkov
+zhirkov_movement_list <- zhirkov_movement %>% pmap(data.frame)
+  
+zhirkov_tween <- zhirkov_movement_list %>% 
+  tween_states(tweenlength = 0.5, statelength = 0.00000001, ease = "linear", nframes = 75)
+
+zhirkov_tween <- zhirkov_tween %>% mutate(label = "Zhirkov")
+```
+
+Now with these newly created tween dataframes, we pass them into our ggplot code as before and specify the frame argument with the newly created `.frame` variable.
+
+```{r tweenr old API}
+ggplot(pass_data) +
+  annotate_pitch() +
+  theme_pitch() +
+  coord_flip(xlim = c(49, 101),
+             ylim = c(-1, 101)) +
+  geom_label(
+    data = saudi_data,
+    aes(x = x, y = y,
+        label = label),
+    color = "darkgreen") +
+  geom_label(data = zhirkov_tween,
+    aes(x = x, y = y,
+        frame = .frame,
+        label = label),
+    color = "red") +
+  geom_label(data = golovin_tween,
+    aes(x = x, y = y,
+        frame = .frame,
+        label = label),
+    color = "red") +
+  geom_label(
+    data = gazinsky_movement,
+    aes(x = x, y = y,
+        label = label),
+    color = "red") +
+  ggimage::geom_emoji(
+    data = ball_tween,
+    aes(x = x, y = y, frame = .frame),   
+    image = "26bd", size = 0.035) +
+  ggtitle(label = "Russia (5) vs. (0) Saudi Arabia", 
+          subtitle = "First goal, Yuri Gazinsky (12th Minute)") +
+  labs(caption = "By Ryo Nakagawara (@R_by_Ryo)") +
+  annotate("text", x = 69, y = 65, family = "Dusha V5",
+           label = "After a poor corner kick clearance\n from Saudi Arabia, Golovin picks up the loose ball, \n exchanges a give-and-go pass with Zhirkov\n before finding Gazinsky with a beautiful cross!") +
+  theme(text = element_text(family = "Dusha V5"))
+```
+
+
+Overall
+
+Now let's check out how things changed with the new API!
 
 
 
 ## With NEW gganimate + tweenr
+
+Once again, Let's start by looking at just animating across the time variable without creating in-between grames.
 
 it's quite nice that I don't have to specify "frame = time_variable" in every geom that I want animated now!
 
@@ -423,27 +511,188 @@ ggplot(ball_data) +
   ease_aes("quadratic-out")
 
 
-osako_tween <- ball_list %>% 
-  tween_states(tweenlength = 1.5, statelength = 0.01, ease = "quadratic-out", nframes = 50)
-
 ```
 
 
 ## Japan's Offside Trap!
 
-```{r}
+```{r osako data}
+# PLAYERS
+# JAPAN: x, y (blue)     Senegal: x2, y2  (lightgreen)
+# push 2, 3 frames up above box >>> add 5, 6 as frames??
+trap_data <- data.frame(
+  
+  time = c(1, 2, 3, 4, 5),
+  
+  # ball trajectory
+  x = c(70, 70, 70, 87, 95),       # pass balls
+  y = c(85, 85, 85, 52, 33),
+  
+  # offside bar
+  #xo =    c(83, 81.2, 79, 77.5, 70),
+  xoend = c(83.8, 81.8, 79, 78.5, 71),
+  
+  yo =    c( 5,  5,  5,  5, 5),
+  yoend = c(95, 95, 95, 95, 95),
+  
+  # players: japan
+  jx  = c(83, 81, 77, 75, 70),
+  jy  = c(rep(65, 5)),
+  
+  jx2 = c(83, 81.8, 78.5, 77, 70),
+  jy2 = c(rep(60.5, 5)),
+  
+  jx3 = c(83, 81, 76.5, 75, 71),
+  jy3 = c(rep(55, 5)),
+  
+  jx4 = c(83, 81.2, 76.3, 75, 70),
+  jy4 = c(rep(52, 5)),
+  
+  jx5 = c(82.8, 81, 77, 74, 70),
+  jy5 = c(rep(49, 5)),
+  
+  jx6 = c(83, 81.8, 77, 74, 70),
+  jy6 = c(rep(45, 5)),
+
+  jx7 = c(83.8, 81, 79, 77.5, 70),
+  jy7 = c(rep(40, 5)),
+  
+  # players: senegal
+  sx = c(83, 84, 84, 84, 84),
+  sy = c(rep(33, 5)),
+  
+  sx2 = c(83, 85, 87, 92, 95),
+  sy2 = c(38, 37, 35, 34, 33),
+  
+  sx3 = c(83, 84, 84, 83, 83),
+  sy3 = c(rep(41, 5)),
+  
+  sx4 = c(83, 84, 83, 78, 78),
+  sy4 = c(rep(45, 5)),
+  
+  sx5 = c(83, 84, 87, 88, 89),
+  sy5 = c(rep(52, 5)),
+  
+  sx6 = c(83, 85, 84, 84, 83),
+  sy6 = c(rep(69, 5))
+)
+
+
+# flags
+flag_data <- data.frame(
+  x = c( 42, 72),
+  y = c(107, 107),
+  team = c("japan", "senegal")
+  ) %>% 
+  mutate(
+    image = team %>% 
+           countrycode(., origin = "country.name", destination = "iso2c")
+  ) %>% 
+  select(-team)
+
+# extra players:
+goalkeeper_data <- data.frame(
+  
+  x = c(98),
+  y = c(50)
+  
+)
+
+senegal_data <- data.frame(
+  
+  x = c(55, 55, 68.5),
+  y = c(50, 60, 87)
+  
+)
+
 
 ```
 
+
+take note of the "wrap" option, set it to false if you don't want the last state to transition back to the first frame (default == TRUE).
+
+```{r tweenr offside NEW, fig.height=10, fig.width=8}
+ggplot(trap_data) +
+  annotate_pitch() +
+  theme_pitch(aspect_ratio = NULL) +
+  coord_fixed(xlim = c(30, 101),
+       ylim = c(-5, 131)) +
+  # offside line
+  geom_segment(aes(x = xoend, y = yo, 
+                   xend = xoend, yend = yoend,
+                   frame = time), 
+               color = "black", size = 1.3) +
+  # start at 83      just use geom_segment instead
+  # japan
+  geom_point(aes(x = jx, y = jy), size = 4, color = "blue") +
+  geom_point(aes(x = jx2, y = jy2), size = 4, color = "blue") +
+  geom_point(aes(x = jx3, y = jy3), size = 4, color = "blue") +
+  geom_point(aes(x = jx4, y = jy4), size = 4, color = "blue") +
+  geom_point(aes(x = jx5, y = jy5), size = 4, color = "blue") +
+  geom_point(aes(x = jx6, y = jy6), size = 4, color = "blue") +
+  geom_point(aes(x = jx7, y = jy7), size = 4, color = "blue") +
+  # senegal
+  geom_point(aes(x = sx, y = sy), size = 4, color = "green") +
+  geom_point(aes(x = sx2, y = sy2), size = 4, color = "green") +
+  geom_point(aes(x = sx3, y = sy3), size = 4, color = "green") +
+  geom_point(aes(x = sx4, y = sy4), size = 4, color = "green") +
+  geom_point(aes(x = sx5, y = sy5), size = 4, color = "green") +
+  geom_point(aes(x = sx6, y = sy6), size = 4, color = "green") +
+  
+  # free kick spot (reference)
+  geom_point(aes(x = 70, y = 85), color = "blue", size = 1.2) +
+  annotate(geom = "text", family = "Dusha V5", 
+           hjust = c(0, 0, 0, 0.5),
+           size = c(4.5, 3, 5.5, 3),
+           label = c("Japan             (2) vs. Senegal             (2)",
+                     "Mane (11'), Inui (33'), Wague (71'), Honda (78')",
+                     "The Perfect Offside Trap",
+                     "by Ryo Nakagawara\n(@R_by_Ryo)"),
+           x = c(30, 30, 30, 94), 
+           y = c(117, 108, 125, -3)) +
+  ggimage::geom_flag(data = flag_data,
+                     aes(x = x, y = y,
+                         image = image),       
+                     size = c(0.08, 0.08)) +
+  ggimage::geom_emoji(aes(x = x, y = y),
+                      image = "26bd", size = 0.035) +
+  transition_states(states = time, 
+                    transition_length = 0.5, 
+                    state_length = 0.00000001,
+                    wrap = FALSE) +
+  ease_aes("linear")
+
+```
+
+
+
+
+
+
+
 + the meme generator with R
 
-```{r meme}
+```{r meme eval=FALSE}
 library(memery)
 img <- ("https://imgflip.com/s/meme/Roll-Safe-Think-About-It.jpg")
 
 meme_labs <- c("you can't lose the aerial battle", "if you set an offside trap")
 
 meme(img, meme_labs, "offside_meme.png")
+
+```
+
+
+
+
+
+
+
+and finally just as an extra...
+
+
+
+```{r}
 
 ```
 
