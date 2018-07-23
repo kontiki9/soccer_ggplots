@@ -21,44 +21,33 @@ I've had finished these a cople of weeks ago but didn't make them publically ava
 
 Several people have asked me where I got the data. I thought I made it quite clear in Part 1 but I will reiterate in the next few paragraphs.
 
-wonderful visualizations by - - - - -
+I get a lot of my data science/visualization news from Twitter which has made a weird comeback (never thought I'll be creating a Twitter account in 2017!) by providing a platform to certain communities like #rstats. With that I've been able to come across some wonderful visualizations for the World Cup by __The Financial Times__, __FiveThirtyEight__, and a host of other people. As you can see from a great example of World Cup penalties by the __BBC__ below, data is provided by sports analytics companies, primarily Opta!
 
-BUT WAIT
+![](https://ichef.bbci.co.uk/onesport/cps/624/cpsprodpb/79E6/production/_102260213_1_penalties_scored_640-nc.png)
 
-can a average joe like me just waltz in, slap down a fiver and say SO GIMME THE DATA?
+Great! But can an average joe like me just waltz in, slap down a fiver, and say "GIMME THE DATA?" Well, unfortunately no, it costs quite a lot! This isn't really a knock on Opta or other sports analytics companies since FIFA or the FAs of respective nations didn't do this kind of stuff, the free market stepped in to fill the gap. Still, I'm 100% sure I am not the only one who wishes this kind of stuff was free though, well besides some datasets of varying quality you see on Kaggle (but none of those are as granular as the stuff Opta provides anyway). 
 
-NO >>>> costs #`$$$`#
+So, envious of those who have the financial backing to procure such data and some mild annoyance at others online who didn't really bother sharing exactly HOW they got their data or even what tools they used, I started thinking of ways that I could get the data for myself.
 
-jealous of those who have the financial backing to procure such data and mild annoyance at others who didn't really bother with sharing exactly HOW they got their data I went to work... 
+One possible way was by using RSelenium or other JavaScript web scrapers. However since I wouldn't have been able to master these tools before the World Cup ends (during which whatever I end up creating would be most relevant), I decided that I'll create the coordinate data positions myself!
 
-fueled by my desire to make some soccer viz , that no one has seen before...! 
+![](https://i.imgur.com/Hn9X0GC.gif)
 
-unable to be able to master RSelenium before the World Cup ends when my visualizations would have the most IMPACT and also not being able to win the lottery in that time as well... I did the unthinkable: create the coordinate data positions myself!
+With the plotting system in `ggsoccer` and `ggplot2` it's really not that hard to find out the positions on the soccer field plot, as you can see in the picture below:
 
-![]() thanos I'll do it myself gif
+![](https://i.imgur.com/ejgbOFg.png)
 
-With the easy plotting system in ggsoccer and ggplot2 it's really not that hard to find out the positions yourself as you can see in the picture below
+There's also a way to make the coordinates be in 120x80 format (which is much more intuitive) and there is an option for it byadding the `*_scale` arguments inside the `annotate_pitch()` function. However, I only realized this after I've embedded the coordinate positions for the 100x100 plot in my head so that's what I kept going with. 
 
-![]() soccer plot positions pic
+There is also the "Soccer event logger" [here](https://github.com/Torvaney/elm-soccer-tracker) which allows you to mouse-click specific points on the field and then download a .csv file of those coordinate positions you clicked. This might be easier but personally, I like to experiment within the R environment and take notes/ideas in RMarkdown as I do so, it definitely is an option for others though.
 
-Of course, there's also a way to make the coordinates be in 120x80 format (which is much more intuitive looking at a rectangular field) and there is an option for it by  ____ . however, i only realized this after I've embedded the positionings for the 100x100 plot in my head so that's what i kept going with. 
+... and that's how [Part 1]() was born! But I wasn't going to stop there, soccer is a moving - flowing game, static images are OK but it just doesn't capture the FEEL of the sport! So that's where `gganimate` and `tweenr` comes in!
 
-There is also the ____ which allows you to mouse-click specific points on the field and then download a .csv file of the coordinates. This might be easier but personally I like to experiment within the R environment and take notes/ideas in RMarkdown as I do so but it definitely is an option for others.
-
-... and that's how [Part 1]() was born! But I wasn't going to stop there, soccer is a moving - flowing game, static images are OK but it just doesn't capture the FEEL of the sport!
-
-
-## Gazinsky's first goal:
-
-Out of all the World Cup events I've animated so far, by far the most complicated is Gazinsky's goal in the opening game. This is because we not only have the ball movement but player movement as well! Also, by using the new API I wanted to experiment with fading out players who aren't important to the play at certain moments in time. So most of the **comparison** aspect of the APIs will be done with this goal.
-
-
-
-## With gganimate + tweenr
+Out of all the World Cup stuff I've animated so far, by far the most complicated was Gazinsky's goal in the opening game. This is because I not only have the ball movement to track but player movement as well. Also, by using the new API I wanted to experiment with fading out players who aren't important to the play at certain moments in time. So most of the **comparison** aspect of the APIs will be done with this goal.
 
 Let's take a look at the packages that I'll be using:
 
-```{r packages}
+```{r packages, message=FALSE, warning=FALSE}
 library(ggplot2)    # general plotting base
 library(dplyr)      # data manipulation/tidying
 library(ggsoccer)   # draw soccer field plot
@@ -67,10 +56,11 @@ library(extrafont)  # incorporate Dusha font into plots
 library(gganimate)  # animate goal plots
 library(tweenr)     # create in-between frames for data
 library(purrr)      # for creating a list of dataframes for tweenr
+library(countrycode)# for finding ISO codes for geom_flag()
 # loadfonts()         run once every new session
 ```
 
-
+## Gazinsky's first goal:
 
 ```{r echo=FALSE}
 # data
@@ -100,8 +90,6 @@ gazinsky_movement <- data.frame(
   time = c(6, 7, 8, 9)
 )
 
-# segment golovin should only appear 4-5?
-# segment zhirkov should only appear 1-3?
 segment_data <- data.frame(
   x = c(77.5, 98),
   y = c(22, 2),
@@ -137,17 +125,18 @@ ball_data <- tribble(
 NOTE: you need to be careful about the ordering of the ggplot elements. You need to make sure the soccer ball emoji code is near the end, after the labels so that the player name labels don't cover the soccer ball as its moving around!
 
 ```{r eval=FALSE}
-gazin_ani <- ggplot(pass_data) +
+ggplot(pass_data) +
   annotate_pitch() +
   theme_pitch() +
   coord_flip(xlim = c(49, 101),
              ylim = c(-1, 101)) +
-  geom_segment(data = segment_data, 
-               aes(x = x, y = y, 
-                   xend = xend, yend = yend),
-               size = segment_data$size,
-               color = segment_data$color,
-               linetype = c("dashed", "dashed")) +
+  geom_segment(
+    data = segment_data, 
+    aes(x = x, y = y, 
+        xend = xend, yend = yend),
+    size = segment_data$size,
+    color = segment_data$color,
+    linetype = c("dashed", "dashed")) +
   geom_label(
     data = saudi_data,
     aes(x = x, y = y,
@@ -179,18 +168,13 @@ gazin_ani <- ggplot(pass_data) +
            label = "After a poor corner kick clearance\n from Saudi Arabia, Golovin picks up the loose ball, \n exchanges a give-and-go pass with Zhirkov\n before finding Gazinsky with a beautiful cross!") +
   theme(text = element_text(family = "Dusha V5"))
 
-gganimate(gazin_ani, 
-          width = 8, height = 6, 
-          title_frame = FALSE,  
-          "gazin_ggani_final.gif")
-
-
 ```
 
+![](https://i.imgur.com/V9drm0I.gif)
 
 Now let's check out how we would do it with tweenr added in!
 
-The important bit with the old API was taht you had to create a list of dataframes of the different states of your data. In this case, it is a dataframe for each row of the data or to put it more simply, the "time" variable (a dataframe of coordinate positions for time = 1, time = 2, etc.). This is done with `pmap()` to create a dataframe for each row. 
+The important bit with the old API was that you had to create a list of dataframes of the different states of your data. In this case, it is a dataframe for each observation of the data or to put it more simply, the "time" variable (a dataframe of coordinate positions for time = 1, time = 2, etc.). This is done with `pmap()` with `dataframe()` being passed to the `.f` argument. 
 
 With this list of dataframes created, we can pass it into `tween_states()` function to create the in-between frames to connect each of the dataframes in the list. Take note of the arguments in `tweent_states()` as they'll show up again in the new API later.
 
@@ -259,18 +243,13 @@ ggplot(pass_data) +
   theme(text = element_text(family = "Dusha V5"))
 ```
 
-
-Overall
+![](https://i.imgur.com/GQYSJSH.gif)
 
 Now let's check out how things changed with the new API!
 
-
-
-## With NEW gganimate + tweenr
+## NEW gganimate + tweenr
 
 Once again, Let's start by looking at just animating across the time variable without creating in-between grames.
-
-it's quite nice that I don't have to specify "frame = time_variable" in every geom that I want animated now!
 
 ```{r}
 ggplot(pass_data) +
@@ -319,40 +298,45 @@ ggplot(pass_data) +
 
 ```
 
-However, you can see that like in the old gganimate code, `transition_manual()` just speeds through the time variable without actually creating in-between frames. Now let's use the other `transition_*()` functions to specify the tween frames and slow the animation down a bit!
+it's quite nice that I don't have to specify "frame = time_variable" in every geom that I want animated now!
 
+However, you can see that like in the old gganimate code the new `transition_manual()` function just speeds through the specified time variable without actually creating in-between frames. 
 
-```{r}
+Now let's use the other `transition_*()` functions to specify the tween frames and set the animation speed. 
+
+```{r eval=FALSE}
 pass_data <- data.frame(
-  x = c(100, 94, 82, 82.5),       # pass balls
-  y = c(0,   35, 31, 22),
-  time = c(1, 2, 3, 4))
+  x = c(100, 94, 82, 82.5,  84, 76.5, 75.5, 94, 99.2),     
+  y = c(0,   35, 31, 22,     8, 13, 19, 60, 47.5),
+  time = c(1, 2, 3, 4, 5, 6, 7, 8, 9))
 
 golovin_movement <- data.frame(
-  x = c(78, 80, 80, 80),   
-  y = c(30, 30, 27, 25),
+  x = c(78, 80, 80, 80, 75.5, 74.5, 73.5, 73, 73),  
+  y = c(30, 30, 27, 25,   10,    9, 15, 15, 15),
   label = "Golovin",
-  time = c(1, 2, 3,  4)
+  time = c(1, 2, 3,  4,  5,  6,  7,  8,  9)
 )
 
 zhirkov_movement <- data.frame(
-  x = c(98, 90, 84, 84),
-  y = c( 0,  2,  2,  2),
+  x = c(98, 90, 84, 84, 84, 84, 84, 84, 84),
+  y = c( 0,  2,  2,  2,  2,  2,  2,  2,  2),
   label = "Zhirkov",
-  time = c(1, 2, 3, 4)
+  time = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
 )
 
 gazinsky_movement <- data.frame(
-  x = c(92),
-  y = c(66.8),
-  label = "Gazinsky"
+  x = c(0, 0, 0, 0, NA, 92,   92,   92,   92),
+  y = c(0, 0, 0, 0, NA, 66.8, 66.8, 66.8, 66.8),
+  label = "Gazinsky",
+  time = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
 )
 
 # saudi defender
 saudi_data <- data.frame(
-  x = c(95),
-  y = c(35),
-  label = "M. Al-Breik"
+  x = c(95, 95, 90, 87, 84, 80, 79, 79, 79),
+  y = c(35, 35, 35, 32, 28, 25, 24, 25, 26),
+  label = "M. Al-Breik",
+  time = c(1, 2, 3, 4, 5, 6, 7, 8, 9)
 )
 
 ### soccer ball
@@ -362,36 +346,21 @@ ball_data <- tribble(
   94,   35,   2,
   82,   31,   3,
   82.5, 25,   4,
+  84,    6,   5, 
+  77,   13,   6,
+  76,   19,   7,
+  94,   60,   8,
+  99.2, 47.5, 9,
+  
 ) 
-
-## THIS WORKS USE THIS.
-b_list <- ball_data %>% pmap(data.frame)
-
-ball_tween <- b_list %>% 
-  tween_states(tweenlength = 0.5, statelength = 0.0001, ease = "linear", nframes = 75)
-
-### Golovin
-
-golovin_movement_list <- golovin_movement %>% pmap(data.frame)
-  
-golovin_tween <- golovin_movement_list %>% 
-  tween_states(tweenlength = 0.5, statelength = 0.0001, ease = "linear", nframes = 75)
-
-golovin_tween <- golovin_tween %>% mutate(label = "Golovin")
-
-### Zhirkov
-zhirkov_movement_list <- zhirkov_movement %>% pmap(data.frame)
-  
-zhirkov_tween <- zhirkov_movement_list %>% 
-  tween_states(tweenlength = 0.5, statelength = 0.0001, ease = "linear", nframes = 75)
-
-zhirkov_tween <- zhirkov_tween %>% mutate(label = "Zhirkov")
-
 
 ```
 
+If you're manually creating these, you could also use `tribble()` instead of a `dataframe()`. It takes up a bit more space, as you can see in `ball_data`, but it is probably more readable for when you're sharing the code (like creating a reprex on SO or RStudio Community...).
 
-now use tweenr
+Here I will use `transition_states()` with "time" being the column I pass to the "states" argument. Instead of having to create `.frame` column with the `tween_states()` function I can just pass the time variable and the `transition_states()` function will tween the frames for you in the ggplot code! The `transition_length` argument is the same as the `tween_length` argument from the old `tween_states()` function and `state_length` argument is the same here too.
+
+unlike in the version in my presentation, I added Al-Breik's movement as well. I felt it was a bit silly (and unfair) to show him just standing there after his clearance!
 
 ```{r}
 ggplot(pass_data) +
@@ -405,12 +374,12 @@ ggplot(pass_data) +
         label = label),
     color = "darkgreen") +
   geom_label(
-    data = zhirkov_tween,
+    data = zhirkov_movement,
     aes(x = x, y = y,
         label = label),
     color = "red") +
   geom_label(
-    data = golovin_tween,
+    data = golovin_movement,
     aes(x = x, y = y,
         label = label),
     color = "red") +
@@ -419,8 +388,9 @@ ggplot(pass_data) +
     aes(x = x, y = y,
         label = label),
     color = "red") +
+  enter_grow(fade = TRUE) +
   ggimage::geom_emoji(
-    data = ball_tween,
+    data = ball_data,
     aes(x = x, y = y),   
     image = "26bd", size = 0.035) +
   ggtitle(label = "Russia (5) vs. (0) Saudi Arabia", 
@@ -429,50 +399,73 @@ ggplot(pass_data) +
   annotate("text", x = 69, y = 65, family = "Dusha V5",
            label = "After a poor corner kick clearance\n from Saudi Arabia, Golovin picks up the loose ball, \n exchanges a give-and-go pass with Zhirkov\n before finding Gazinsky with a beautiful cross!") +
   theme(text = element_text(family = "Dusha V5")) +
-  transition_states(.frame, 
+  transition_states(time, 
                     transition_length = 0.5, 
-                    state_length = 0.0001) +
-  enter_fade() +
-  exit_shrink() +
+                    state_length = 0.0001,#0001
+                    wrap = FALSE) +
   ease_aes("linear")
-
-
 
 ```
 
+Great! 
 
+Any cool new thing that you can play around with are the different enter/exit animations!
 
-## Personal thoughts:
+however, I couldn't really get it to work for Gazinsky's label... In the mtcars example on the gganimate github repo, the
 
-no intermediary steps >> if you have the time var you dont have to manually go and create the list of dataframe for each state yourself >>> transition_states() does it all for you in the ggplot code!!
-dont have to deal with list dataframes and creating them and the extra step hassle of using tween)states() tunfction
+I'm thinking I have to set up the Gazinsky label dataframe differently? I tried filling the coordinate positions for time 1-5 with NAs or 0s but it didn't seem trigger the effect ... when I tried with "0, 0" in `time = 5`, the label zipped in from the bottom of the screen to the penalty box at `time = 6` and it was unintentionally very funny!
 
-made the mistake of runnign through the tween_states funs and THEN putting everything through transition_states again so it made everything weird...
+any help there will be greatly appreciated!
 
 
 
 ## Osako's goal vs. Colombia
 
-```{r}
-cornerkick_data <- data.frame(x = 99, y = 0.3,
-                              x2 = 94, y2 = 47)
 
-osako_gol <- data.frame(x = 94, y = 49,
-                        x2 = 100, y2 = 55.5)
+this one was a lot easier and to be honest this was the first one I was able to actually get working a few weeks ago! Mainly because the ball movement was the only thing I really had to worry about.
 
-ball_data <- data.frame(x = c(99, 94, 100),
-                        y = c(0.3, 47, 55.5),
-                        time = c(1, 2, 3))
+```{r osako data}
+cornerkick_data <- data.frame(
+  x = 99, y = 0.3,
+  x2 = 94, y2 = 47)
 
-player_label <- data.frame(x = c(92, 99), 
-                           y = c(49, 2))
+osako_gol <- data.frame(
+  x = 94, y = 49,
+  x2 = 100, y2 = 55.5)
 
-wc_logo <- data.frame(x = 107,
-                       y = 85) %>% 
-  mutate(image = "https://upload.wikimedia.org/wikipedia/en/thumb/6/67/2018_FIFA_World_Cup.svg/1200px-2018_FIFA_World_Cup.svg.png")
+ball_data <- data.frame(
+  x = c(99, 94, 100),
+  y = c(0.3, 47, 55.5),
+  time = c(1, 2, 3))
+
+player_label <- data.frame(
+  x = c(92, 99), 
+  y = c(49, 2),
+  label = c("Osako", "Honda"))
+
+wc_logo <- data.frame(
+  x = 107,
+  y = 85) %>% 
+  mutate(
+    image = "https://upload.wikimedia.org/wikipedia/en/thumb/6/67/2018_FIFA_World_Cup.svg/1200px-2018_FIFA_World_Cup.svg.png")
+
+# flags
+flag_data <- data.frame(
+  x = c( 13, 53),
+  y = c(110, 110),
+  team = c("japan", "colombia")
+  ) %>% 
+  mutate(
+    image = team %>% 
+           countrycode(., origin = "country.name", destination = "iso2c")
+  ) %>% 
+  select(-team)
+
 ```
 
 tweenr
+
+here I used one of the many easing functions available in tweenr, `quadratic-out` to get the speed of the ball from a corner kick just about right... You can refer to []() awesome website to check out most of the different easing functions you can use in `ease_aes()`!
 
 ```{r}
 ggplot(ball_data) +
@@ -481,29 +474,35 @@ ggplot(ball_data) +
   theme(text = element_text(family = "Dusha V5")) +
   coord_flip(xlim = c(55, 112),
              ylim = c(-1, 101)) +
-  geom_label(data = player_label, 
-             aes(x = x, y = y),
-             label = c("Osako", "Honda"), family = "Dusha V5") +
-  geom_point(aes(x = 98, y = 50), size = 3, color = "green") +
-  annotate(geom = "text", family = "Dusha V5", 
-           hjust = c(0.5, 0.5, 0.5, 0.5),
-           size = c(6.5, 4.5, 5, 3),
-           label = c("Japan             (2) vs. Colombia             (1)",
-                     "Kagawa (PEN 6'), Quintero (39'), Osako (73')",
-                     "Japan press their man advantage, substitute Honda\ndelivers a delicious corner kick for Osako to (somehow) tower over\nColombia's defense and flick a header into the far corner!",
-                     "by Ryo Nakagawara (@R_by_Ryo)"),
-           x = c(110, 105, 70, 53), 
-           y = c(30, 30, 47, 85)) +
-  ggimage::geom_emoji(aes(x = x, 
-                          y = y),
-             image = "26bd", size = 0.035) +
-  ggimage::geom_flag(aes(image = "JP"),       # Japan Flag
-            x = 110, y = 13, size = 0.08) +
-  ggimage::geom_flag(aes(image = "CO"),       # Colombia Flag
-            x = 110, y = 53, size = 0.08) +
-  geom_image(data = wc_logo,
-             aes(x = x, y = y,
-                 image = image), size = 0.17) +
+  geom_label(
+    data = player_label, 
+    aes(x = x, y = y),
+    label = label, family = "Dusha V5") +
+  geom_point(
+    aes(x = 98, y = 50), size = 3, color = "green") +
+  annotate(
+    geom = "text", family = "Dusha V5", 
+    hjust = c(0.5, 0.5, 0.5, 0.5),
+    size = c(6.5, 4.5, 5, 3),
+    label = c("Japan             (2) vs. Colombia             (1)",
+              "Kagawa (PEN 6'), Quintero (39'), Osako (73')",
+              "Japan press their man advantage, substitute Honda\ndelivers a delicious corner kick for Osako to (somehow) tower over\nColombia's defense and flick a header into the far corner!",
+              "by Ryo Nakagawara (@R_by_Ryo)"),
+    x = c(110, 105, 70, 53), 
+    y = c(30, 30, 47, 85)) +
+  ggimage::geom_emoji(              # soccer ball emoji
+    aes(x = x, 
+        y = y),
+    image = "26bd", size = 0.035) +
+  ggimage::geom_flag(               # Japan + Colombia flag
+    data = flag_data,
+    aes(x = x, y = y,
+        image = image),       
+    size = c(0.08, 0.08)) +
+  geom_image(                       # World Cup logo
+    data = wc_logo,     
+    aes(x = x, y = y,
+        image = image), size = 0.17) +
   theme(plot.margin=grid::unit(c(0,0,0,0), "mm")) +
   transition_states(time, 
                     transition_length = 1.5, 
@@ -513,22 +512,24 @@ ggplot(ball_data) +
 
 ```
 
+As you can see it's quite easy and fun to make these! I am hoping to make more in the future, especially when the new season begins! 
+
+For the final animation, I tried to recreate something you don't see everyday - an offside trap!
 
 ## Japan's Offside Trap!
 
 ```{r osako data}
 # PLAYERS
 # JAPAN: x, y (blue)     Senegal: x2, y2  (lightgreen)
-# push 2, 3 frames up above box >>> add 5, 6 as frames??
 trap_data <- data.frame(
   
   time = c(1, 2, 3, 4, 5),
   
   # ball trajectory
-  x = c(70, 70, 70, 87, 95),       # pass balls
+  x = c(70, 70, 70, 87, 95),       
   y = c(85, 85, 85, 52, 33),
   
-  # offside bar
+  # offside line bar
   #xo =    c(83, 81.2, 79, 77.5, 70),
   xoend = c(83.8, 81.8, 79, 78.5, 71),
   
@@ -577,7 +578,6 @@ trap_data <- data.frame(
   sy6 = c(rep(69, 5))
 )
 
-
 # flags
 flag_data <- data.frame(
   x = c( 42, 72),
@@ -604,8 +604,6 @@ senegal_data <- data.frame(
   y = c(50, 60, 87)
   
 )
-
-
 ```
 
 
@@ -622,7 +620,6 @@ ggplot(trap_data) +
                    xend = xoend, yend = yoend,
                    frame = time), 
                color = "black", size = 1.3) +
-  # start at 83      just use geom_segment instead
   # japan
   geom_point(aes(x = jx, y = jy), size = 4, color = "blue") +
   geom_point(aes(x = jx2, y = jy2), size = 4, color = "blue") +
@@ -641,6 +638,12 @@ ggplot(trap_data) +
   
   # free kick spot (reference)
   geom_point(aes(x = 70, y = 85), color = "blue", size = 1.2) +
+  # goalkeeper
+  geom_point(data = goalkeeper_data,
+             aes(x = x, y = y), size = 4, color = "blue") +
+  # senegal defenders
+  geom_point(data = senegal_data,
+             aes(x = x, y = y), size = 4, color = "green") +
   annotate(geom = "text", family = "Dusha V5", 
            hjust = c(0, 0, 0, 0.5),
            size = c(4.5, 3, 5.5, 3),
@@ -664,13 +667,7 @@ ggplot(trap_data) +
 
 ```
 
-
-
-
-
-
-
-+ the meme generator with R
+So against the height advantage and physicality of Senegal, the thinking behind Japan strategy was...
 
 ```{r meme eval=FALSE}
 library(memery)
@@ -682,17 +679,20 @@ meme(img, meme_labs, "offside_meme.png")
 
 ```
 
+![]()
 
+Jokes and memes aside, let's take a moment to reflect on the new API.
 
+## Personal thoughts:
 
+no intermediary steps >> if you have the time var you dont have to manually go and create the list of dataframe for each state yourself >>> transition_states() does it all for you in the ggplot code!!
+dont have to deal with list dataframes and creating them and the extra step hassle of using tween)states() tunfction
 
+made the mistake of runnign through the tween_states funs and THEN putting everything through transition_states again so it made everything weird...
 
+ease_aes() also allows you to specify the easing function of the transitions in the ggplot code as well.
 
-and finally just as an extra...
+With everything moved so that you can add in the animation grammar seamlessly with ggplot I feel you can read the entirety of the code better. As in, you don't have to refer back to a separate chunk of code that handled creating the tween frames. 
 
-
-
-```{r}
-
-```
+There's still much to learn from the new API and I'm sure there will still be more changes/fixes to come before the first CRAN release but this was enlightening step in the right direction. I hope to keep using it in the future!
 
