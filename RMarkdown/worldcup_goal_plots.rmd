@@ -993,14 +993,15 @@ g2 <- ggplot(offside_tween) +
   # senegal defenders
   geom_point(data = senegal_data,
              aes(x = x, y = y), size = 4, color = "green") +
-  annotate(geom = "text", family = "Dusha V5", 
-           hjust = c(0, 0, 0.5),
-           size = c(6, 6.5, 3),
-           label = c("Japan             (2) vs. Senegal             (2)",
-                     "The Perfect Offside Trap",
-                     "by Ryo Nakagawara\n(@R_by_Ryo)"),
-           x = c(30,  30, 94), 
-           y = c(107, 115, -3)) +
+  annotate(
+    geom = "text", family = "Dusha V5", 
+    hjust = c(0, 0, 0.5),
+    size = c(6, 6.5, 3),
+    label = c("Japan             (2) vs. Senegal             (2)",
+              "The Perfect Offside Trap",
+              "by Ryo Nakagawara\n(@R_by_Ryo)"),
+    x = c(30,  30, 94), 
+    y = c(107, 115, -3)) +
   ggimage::geom_flag(data = flag_data,
                      aes(x = c(48, 90), y = c(107, 107),
                          image = image),       
