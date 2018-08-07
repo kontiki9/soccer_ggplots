@@ -1,20 +1,24 @@
-## Re-create goals, stats viz, etc. from World Cup and beyond. (Using ggplot2, ggsoccer, and more)
+## Re-create goals, stats viz, etc. from the World Cup and beyond. (Using ggplot2, ggsoccer, and more)
 
-### blog posts:
+### World Cup blog posts:
 - [Part 1: Recreating the Goals of the World Cup!](https://ryo-n7.github.io/2018-06-29-visualize-worldcup/)
 - [Part 2: Final Matchday Drama of the World Cup Group Stages!](https://ryo-n7.github.io/2018-07-05-visualize-worldcup-part-2/)
 - [Part 3: Animating the Goals of the World Cup!](https://ryo-n7.github.io/2018-07-24-visualize-worldcup-part-3/)
 
-### rmarkdown/scripts
-- World Cup Goal Plots (static): `RMarkdown/worldcup_goal_plots.rmd`
+### rmarkdown/scripts/gists
+- World Cup Goal Plots (static): `World Cup/RMarkdown/worldcup_goal_plots.rmd`
 - Animated World Cup Goals: Most up-to-date is in the [blog post](https://ryo-n7.github.io/2018-07-24-visualize-worldcup-part-3/)
-- Group Table Final Matchday: `RMarkdown/group_table_final_matchday.rmd`
-- Animated Japan Uniforms: `RMarkdown/historical_kits.rmd`
+- Group Table Final Matchday: `World Cup/RMarkdown/group_table_final_matchday.rmd`
+- Animated Japan Uniforms: `World Cup/RMarkdown/historical_kits.rmd`
+- Liverpool FC Age-Utility Matrix: [Gist](https://gist.github.com/Ryo-N7/5309ba2496b4f75a0747166bfbc52270)
 
 Examples: 
 
 First Goal of the World Cup: Yuri Gazinsky
 ![](https://i.imgur.com/GqNHFPl.gif)
+
+## Age-Utility Matrix: Liverpool FC
+![](https://i.imgur.com/Lk1lpMg.png)
 
 ## Cristiano Ronaldo's hattrick vs. Spain:
 ![](https://i.imgur.com/iFFOotS.png)
