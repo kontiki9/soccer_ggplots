@@ -1,0 +1,140 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "August 12, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+library(ggsoccer)
+library(gganimate)
+library(ggplot2)
+library(dplyr)
+library(scales)
+library(ggimage)
+```
+
+
+```{r}
+empty_dat <- data.frame(x = 1, y = 1)
+
+ggplot(empty_dat, aes(x = x, y = y)) +
+  annotate_pitch() +
+  theme_pitch() +
+  coord_flip(
+    xlim = c(65, 112),
+    ylim = c(-1, 101)) 
+
+
+```
+
+
+
+
+
+
+```{r}
+
+ball_data <- data.frame(
+  
+  # SHOW Trent's beautiful through-pass?
+  
+  # 1: forward run (slight diagonal left)   center toward penalty box arc
+  
+  # 2: touch out wide left
+  
+  # 3: drift left 
+  
+  # 4. >>> PASS       (how to code in the slight pause?)
+  
+  # 5: Robbo first time cross in
+  
+  # 6: Mo tap-in
+  
+)
+
+
+lfc_players <- data.frame(
+  
+  # Trent
+  lx1,
+  ly1,
+  
+  # Naby
+  lx2,
+  ly2,
+  
+  # Robbo
+  lx3,
+  ly3,
+  
+  # Mo
+  lx4,
+  ly4,
+  
+  # Sadio
+  lx5,
+  ly5,
+  
+  # Hamez
+  lx6,
+  ly6,
+  
+  # Bobby
+  lx7,
+  ly7,
+  
+  
+
+)
+
+whfc_players <- data.frame(
+  
+  # Rice
+  wx1,
+  wy1,
+  # Noble
+  wx2,
+  wy2,
+  
+  # Fredericks
+  wx3,
+  wy3,
+  
+  # Ogbonna
+  wx4,
+  wy4,
+  
+  # Balbuena
+  wx5,
+  wy5,
+  
+  # Masuaku
+  wx6,
+  wy6,
+  
+  # Fabianski
+  wx7,
+  wy7
+)
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
