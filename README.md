@@ -12,9 +12,13 @@
 - Animated Japan Uniforms: `World Cup/RMarkdown/historical_kits.rmd`
 - Liverpool FC Age-Utility Matrix: [Gist](https://gist.github.com/Ryo-N7/5309ba2496b4f75a0747166bfbc52270)
 
+### Miscellaneous:
+- [Tokyo.R Presentation](http://rpubs.com/Ryo-N7/visualize_world_cup_with_R)
+- [Youtube Recording of Tokyo.R Presentation](https://www.youtube.com/watch?v=tNncHFd5dVo)
+
 Examples: 
 
-First Goal of the World Cup: Yuri Gazinsky
+## First Goal of the World Cup: Yuri Gazinsky
 ![](https://i.imgur.com/GqNHFPl.gif)
 
 ## Age-Utility Matrix: Liverpool FC
