@@ -1,0 +1,162 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "August 25, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Avg. Value vs. Avg. Age
+
+
+
+- also look at % of foreign players
+- Iniesta, Torres, Podolski?
+- 
+
+
+
+
+```{r}
+library(rvest)
+library(polite)
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+library(scales)
+library(ggimage)
+library(stringr)
+library(glue)
+```
+
+
+
+```{r}
+#\31 022
+# //*[@id="yw1"]/table/tbody/tr[1]/td[1]/a/img
+# //*[@id="yw1"]/table/tbody/tr[1]/td[1]/a/img
+# //*[@id="828"]
+# #\38 28
+# #yw1 > table > tbody > tr:nth-child(1) > td.zentriert.no-border-rechts > a > img
+team_name <- scrape(session) %>% 
+  html_nodes(xpath = "//*[@id='yw1']/table/tbody/tr/td/a/img") %>% 
+  html_attr("alt")
+```
+
+
+
+```{r}
+url <- "https://www.transfermarkt.com/j-league-division-1/startseite/wettbewerb/JAP1/saison_id/2017"
+
+session <- bow(url)
+
+# grab team name from img instead
+team_name <- scrape(session) %>% 
+  html_nodes("#yw1 > table > tbody > tr > td.zentriert.no-border-rechts > a > img") %>% 
+  html_attr("alt")
+
+avg_age <- scrape(session) %>% 
+  html_nodes("tbody .hide-for-pad:nth-child(5)") %>% 
+  html_text()
+
+avg_value <- scrape(session) %>% 
+  html_nodes("tbody .rechts+ .hide-for-pad") %>% 
+  html_text()
+
+team_img <- scrape(session) %>% 
+  html_nodes("#yw1 > table > tbody > tr > td.zentriert.no-border-rechts > a > img") %>% 
+  html_attr("src")
+
+
+```
+
+
+
+```{r}
+resultados <- list(team_name, avg_age, avg_value, team_img)
+
+col_name <- c("team", "avg_age", "avg_value", "img")
+
+j_league_age_value_raw <- resultados %>% 
+  reduce(cbind) %>% 
+  as_data_frame() %>% 
+  set_names(col_name)
+
+j_league_age_value <- j_league_age_value_raw %>% 
+  mutate(avg_age = avg_age %>% str_replace_all(",", ".") %>% as.numeric(),
+         avg_value = avg_value %>% 
+           str_replace_all("Th. \200", "000") %>% 
+           str_replace(" ", "") %>% 
+           as.numeric(),
+         img = img %>% str_replace("/tiny/", "/head/")) %>% 
+# Googled Euro-to-Yen exchange rate: 1 Euro = 129.39 Yen (8.25.18)
+  mutate(avg_value = (avg_value * 129.39) %>% round(digits = 0),
+         avg_value = avg_value / 10000) 
+
+```
+
+```{r fig.height=6, fig.width=8}
+j_league_age_value %>% 
+  ggplot(aes(x = avg_age, y = avg_value)) +
+  geom_image(aes(image = img), size = 0.065) +
+  scale_x_continuous(breaks = pretty_breaks(5),
+                     limits = c(24, 29) ) +
+  scale_y_continuous(labels = comma,
+                   breaks = pretty_breaks(5)) +
+  labs(title = "Jリーグ: 各チームの平均推定市場価格 vs. 平均年齢",
+       subtitle = "",
+       caption = glue("
+                      データ：transfermarkt.com
+                      By: @R_by_Ryo
+                      Inspired by: @fussbALEXperte"),
+       x = "平均年齢",
+       y = "平均推定市場価格 (万円)") +
+  theme_minimal() +
+  theme(text = element_text(family = "IPAexGothic"))
+
+ggsave(filename = "j_league_age_value_plot.png", height = 6, width = 8)
+```
+
+
+
+
+Percentage of total value by foreign players?
+
+
+```{r}
+team_links <- scrape(session) %>% 
+  html_nodes("#yw1 > table > tbody > tr > td.zentriert.no-border-rechts > a") %>% 
+  html_attr("href")
+
+player_name <- scrape(session) %>% 
+  html_nodes() %>% 
+  html_attr()
+
+
+team_links[1]
+
+session_cz <- bow(glue("{url}{team_links[1]}"))
+session_cz <- bow("https://www.transfermarkt.com/cerezo-osaka/startseite/verein/1022/saison_id/2017")
+# grab name from photo element instead
+result_name <- scrape(session_cz) %>% 
+  html_nodes(".bilderrahmen-fixed") %>% 
+  html_attr("title") 
+
+# grab age
+result_nationality <- scrape(session_cz) %>% 
+  html_nodes("#yw1 .flaggenrahmen") %>% 
+  html_attr("title")
+
+# grab minutes played in league
+result_value <- scrape(session_cz) %>% 
+  html_nodes(".rechts.hauptlink") %>% 
+  html_text()
+
+
+```
+
+
