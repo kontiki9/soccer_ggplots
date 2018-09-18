@@ -1,0 +1,44 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "September 18, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+
+
+```{r}
+library(polite)
+library(rvest)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+
+
+```{r}
+url <- "https://en.wikipedia.org/wiki/Japan%E2%80%93South_Korea_football_rivalry"
+
+session <- bow(url)
+
+jpn_kor_df_raw <- scrape(session) %>% 
+  html_nodes(xpath = "//*[@id='mw-content-text']/div/table[3]") %>% 
+  .[[1]] %>% 
+  html_table()
+
+
+```
+
+- separate score for HOME - AWAY
+- separate score for PKs
+- check for neutral >>> Tokyo, Yokohama, etc. == JAPAN, Seoul, Daegu, etc. == Korea, ELSE == neutral
+- vertical lollipop chart
+
+
