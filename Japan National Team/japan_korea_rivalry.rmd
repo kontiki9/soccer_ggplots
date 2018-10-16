@@ -13,12 +13,16 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 
-```{r}
+```{r message=FALSE}
 library(polite)
 library(rvest)
 library(dplyr)
 library(tidyr)
+library(stringr)
+library(lubridate)
 library(ggplot2)
+library(extrafont)
+loadfonts()
 ```
 
 
@@ -32,8 +36,6 @@ jpn_kor_df_raw <- scrape(session) %>%
   html_nodes(xpath = "//*[@id='mw-content-text']/div/table[3]") %>% 
   .[[1]] %>% 
   html_table()
-
-
 ```
 
 - separate score for HOME - AWAY
@@ -41,4 +43,187 @@ jpn_kor_df_raw <- scrape(session) %>%
 - check for neutral >>> Tokyo, Yokohama, etc. == JAPAN, Seoul, Daegu, etc. == Korea, ELSE == neutral
 - vertical lollipop chart
 
+```{r}
+jpn_kor_df_raw %>% glimpse()
+```
+
+- need to use iconv() to fix "-" as different types of "-" characters in the score variable...!
+
+```{r}
+jpn_kor_df_clean <- jpn_kor_df_raw %>% 
+  janitor::clean_names() %>% 
+  mutate(pen = score %>% 
+           iconv(from = "UTF-8", to = "ASCII//TRANSLIT") %>% 
+           str_extract("\\([^()]+\\)"),
+         pen = gsub("[(PK)]", "", pen),
+         score = score %>% 
+           iconv(from = "UTF-8", to = "ASCII//TRANSLIT") %>% 
+           str_remove("\\(.*\\)"),
+         date = dmy(date)) %>% 
+  separate("score", into = c("home_score", "away_score"), sep = "-") %>%
+  separate("pen", into = c("home_score_pen", "away_score_pen"), sep = "-") %>% 
+  mutate_at(vars(contains("score")), as.numeric)
+
+jpn_kor_df_clean <- jpn_kor_df_clean %>% 
+  mutate(date = replace(date, number == 53, "1993-10-25"))
+
+```
+
+
+
+```{r}
+jpn_kor_test <- jpn_kor_df_clean %>% select(date, home_team, home_score, away_team, away_score)
+
+jpn_kor_test <- jpn_kor_test %>% 
+  unite("home", c("home_team", "home_score")) %>% 
+  unite("away", c("away_team", "away_score")) %>% 
+  gather(key = team_type, value = team, -date) %>% 
+  mutate(goal = str_extract(team, "[^_]+$")) %>% 
+  mutate(team = str_remove(team, "_[0-9]")) %>% 
+  arrange(desc(date))
+  
+  #separate(value, into = c("team", "goals"), extra = "merge")
+
+jpn_kor_test %>% 
+  filter(date > "2000-01-01") %>% 
+  ggplot(aes(date, goal)) +
+  geom_point(aes(group = date, color = team)) +
+  geom_path(aes(group = date, x = date, y = goal)) +
+  theme_minimal()
+  #scale_x_continuous(breaks = 10) +
+  scale_x_date(limits = c(as.Date("2000-01-01"), as.Date("2018-01-01")),
+               date_breaks = "1 day")
+```
+
+
+```{r}
+jpn_kor_fix <- jpn_kor_test %>% 
+  mutate(num = as.integer(factor(date)))
+
+jpn_kor_fix %>% 
+  ggplot(aes(num, goal)) +
+  geom_point(aes(group = num, color = team)) +
+  geom_path(aes(group = num, x = num, y = goal)) +
+  scale_x_continuous(breaks = 10)
+  scale_x_date(limits = c(as.Date("1954-01-01"), as.Date("1955-01-01")),
+               date_breaks = "1 day")
+  
+```
+
+
+
+
+
+
+```{r, fig.width=10, fig.height=7}
+jpn_kor_df_clean %>% 
+  mutate(winner = case_when(
+    home_score > away_score & home_team == "Japan" ~ "Japan",
+    away_score > home_score & away_team == "Japan" ~ "Japan",
+    home_score > away_score & home_team == "South Korea" ~ "South Korea",
+    away_score > home_score & away_team == "South Korea" ~ "South Korea",
+    home_score == away_score & home_score_pen > away_score_pen & home_team == "Japan" ~ 
+      "PK: Japan",
+    home_score == away_score & home_score_pen < away_score_pen & away_team == "Japan" ~ 
+      "PK: Japan",
+    home_score == away_score & home_score_pen > away_score_pen & home_team == "South Korea" ~ 
+      "PK: South Korea",
+    home_score == away_score & home_score_pen < away_score_pen & away_team == "South Korea" ~ 
+      "PK: South Korea",
+    TRUE ~ "Draw"
+  )) %>% 
+  select(date, home_team, home_score, away_team, away_score, winner) %>% 
+  unite("home", c("home_team", "home_score")) %>% 
+  unite("away", c("away_team", "away_score")) %>% 
+  gather(key = team_type, value = team, -date, - winner) %>% 
+  mutate(goal = str_extract(team, "[^_]+$")) %>% 
+  mutate(team = str_remove(team, "_[0-9]")) %>% 
+  arrange(desc(date)) -> jpn_kor_final
+  
+  
+line_vals <- c("Japan" = "blue", "South Korea" = "red",
+               "PK: Japan" = "blue", "PK: South Korea" = "red",
+               "Draw" = "white")
+
+breaks <- as.Date(c("2000-01-01", "2005-01-01", "2010-01-01", "2015-01-01", "2018-01-01"))
+labs <- c("2000", "2005", "2010", "2015", "2018")
+
+jpn_kor_final %>% 
+  filter(date > "2000-01-01") %>% 
+  ggplot() +
+  geom_path(aes(group = date, x = date, y = goal, color = winner), 
+            size = 1.5,
+            show.legend = FALSE) +
+  # Japan
+  geom_point(data = jpn_kor_final %>% 
+               filter(date > "2000-01-01", team == "Japan", 
+                      winner == "Japan" | winner == "South Korea"), 
+             aes(x = date, y = goal, group = date), 
+             color = "blue", size = 4) +
+  # Korea
+  geom_point(data = jpn_kor_final %>% 
+               filter(date > "2000-01-01", team == "South Korea", 
+                      winner == "Japan" | winner == "South Korea"),
+             aes(x = date, y = goal, group = date), 
+             color = "red", size = 4) +
+  # Draw
+  geom_point(data = jpn_kor_final %>% 
+               filter(date > "2000-01-01", winner == "Draw"),
+             aes(x = date, y = goal, group = date), 
+             color = "grey", size = 3.5, shape = 17) +
+  geom_point(data = jpn_kor_final %>% 
+               filter(date > "2000-01-01", winner == "PK: Japan"),
+             aes(x = date, y = goal, group = date), 
+             color = "blue", size = 3.5, shape = 17) +
+  geom_point(data = jpn_kor_final %>% 
+               filter(date > "2000-01-01", winner == "PK: South Korea"),
+             aes(x = date, y = goal, group = date), 
+             color = "red", size = 3.5, shape = 17) +
+  scale_color_manual(values = line_vals) +
+  scale_x_date(limits = c(as.Date("2000-01-01"), as.Date("2018-01-01")),
+               breaks = breaks, labels = labs,
+               expand = c(0.05, 0.05)) +
+  scale_y_discrete(expand = c(0.05, 0.2)) +
+  labs(title = "Japan vs. South Korea: The Eternal East Asian Rivalry",
+       x = NULL, y = "Goals Scored") +
+  annotate(geom = "text",
+           x = as.Date(""), 
+           y = 0.25,
+           label = "") +
+  annotate(geom = "text",
+           x = as.Date(""), 
+           y = 2.5,
+           label = "")
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 20),
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 16))
+
+```
+
+
+```{r fig.width=20, fig.height=10}
+## ALL TIME
+jpn_kor_final %>% 
+  ggplot() +
+  geom_point(data = jpn_kor_final %>% 
+               filter(team == "Japan", winner != "Draw"), 
+             aes(x = date, y = goal, group = date), 
+             color = "blue", size = 3) +
+  geom_point(data = jpn_kor_final %>% 
+               filter(team == "South Korea", winner != "Draw"),
+             aes(x = date, y = goal, group = date), 
+             color = "red", size = 3) +
+  geom_point(data = jpn_kor_final %>% 
+               filter(winner == "Draw"),
+             aes(x = date, y = goal, group = date), 
+             color = "grey", size = 3.5) +
+  geom_path(aes(group = date, x = date, y = goal, color = winner)) +
+  scale_color_manual(values = line_vals) +
+  scale_x_date(limits = c(as.Date("1954-01-01"), as.Date("2018-01-01")),
+               date_breaks = "1 years", expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  theme_minimal() 
+```
 
