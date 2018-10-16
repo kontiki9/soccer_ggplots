@@ -115,7 +115,7 @@ jpn_kor_fix %>%
 
 
 
-```{r, fig.width=10, fig.height=7}
+```{r, fig.width=10, fig.height=7, fig.showtext=TRUE}
 jpn_kor_df_clean %>% 
   mutate(winner = case_when(
     home_score > away_score & home_team == "Japan" ~ "Japan",
@@ -123,83 +123,138 @@ jpn_kor_df_clean %>%
     home_score > away_score & home_team == "South Korea" ~ "South Korea",
     away_score > home_score & away_team == "South Korea" ~ "South Korea",
     home_score == away_score & home_score_pen > away_score_pen & home_team == "Japan" ~ 
-      "PK: Japan",
+      "Japan",
     home_score == away_score & home_score_pen < away_score_pen & away_team == "Japan" ~ 
-      "PK: Japan",
+      "Japan",
     home_score == away_score & home_score_pen > away_score_pen & home_team == "South Korea" ~ 
-      "PK: South Korea",
+      "South Korea",
     home_score == away_score & home_score_pen < away_score_pen & away_team == "South Korea" ~ 
-      "PK: South Korea",
+      "South Korea",
     TRUE ~ "Draw"
   )) %>% 
-  select(date, home_team, home_score, away_team, away_score, winner) %>% 
+  mutate(pen = case_when(
+    home_score == away_score & home_score_pen > away_score_pen & home_team == "Japan" ~ 
+      "Pen: Japan",
+    home_score == away_score & home_score_pen < away_score_pen & away_team == "Japan" ~ 
+      "Pen: Japan",
+    home_score == away_score & home_score_pen > away_score_pen & home_team == "South Korea" ~ 
+      "Pen: South Korea",
+    home_score == away_score & home_score_pen < away_score_pen & away_team == "South Korea" ~ 
+      "Pen: South Korea",
+    TRUE ~ "non-PK"
+  )) %>% 
+  select(date, home_team, home_score, away_team, away_score, winner, pen) %>% 
   unite("home", c("home_team", "home_score")) %>% 
   unite("away", c("away_team", "away_score")) %>% 
-  gather(key = team_type, value = team, -date, - winner) %>% 
+  gather(key = team_type, value = team, -date, - winner, -pen) %>% 
   mutate(goal = str_extract(team, "[^_]+$")) %>% 
   mutate(team = str_remove(team, "_[0-9]")) %>% 
   arrange(desc(date)) -> jpn_kor_final
   
-  
+```
+
+
+```{r fig.width=10, fig.height=7, fig.showtext=TRUE}
+library(emo)
 line_vals <- c("Japan" = "blue", "South Korea" = "red",
-               "PK: Japan" = "blue", "PK: South Korea" = "red",
-               "Draw" = "white")
+               "Draw" = "grey")
 
 breaks <- as.Date(c("2000-01-01", "2005-01-01", "2010-01-01", "2015-01-01", "2018-01-01"))
 labs <- c("2000", "2005", "2010", "2015", "2018")
+
+flag_data <- data.frame(
+  x = c(),
+  y = c(),
+  team = c("japan", "south korea")
+) %>% 
+  mutate(image = team %>% countrycode::countrycode(., origin = "country.name", 
+                                                   destination = "iso2c")) %>% 
+  select(-team)
+
+
+
 
 jpn_kor_final %>% 
   filter(date > "2000-01-01") %>% 
   ggplot() +
   geom_path(aes(group = date, x = date, y = goal, color = winner), 
             size = 1.5,
-            show.legend = FALSE) +
+            show.legend = TRUE) +
+  scale_color_manual(name = "", 
+                     values = line_vals) +
   # Japan
   geom_point(data = jpn_kor_final %>% 
                filter(date > "2000-01-01", team == "Japan", 
-                      winner == "Japan" | winner == "South Korea"), 
+                      winner == "Japan" | winner == "South Korea",
+                      pen == "non-PK"), 
              aes(x = date, y = goal, group = date), 
              color = "blue", size = 4) +
   # Korea
   geom_point(data = jpn_kor_final %>% 
                filter(date > "2000-01-01", team == "South Korea", 
-                      winner == "Japan" | winner == "South Korea"),
+                      winner == "Japan" | winner == "South Korea",
+                      pen == "non-PK"),
              aes(x = date, y = goal, group = date), 
              color = "red", size = 4) +
   # Draw
   geom_point(data = jpn_kor_final %>% 
                filter(date > "2000-01-01", winner == "Draw"),
              aes(x = date, y = goal, group = date), 
-             color = "grey", size = 3.5, shape = 17) +
+             color = "grey", size = 4.5, shape = 17) +
   geom_point(data = jpn_kor_final %>% 
-               filter(date > "2000-01-01", winner == "PK: Japan"),
+               filter(date > "2000-01-01", pen == "Pen: Japan"),
              aes(x = date, y = goal, group = date), 
-             color = "blue", size = 3.5, shape = 17) +
+             color = "blue", size = 4.5, shape = 17) +
   geom_point(data = jpn_kor_final %>% 
-               filter(date > "2000-01-01", winner == "PK: South Korea"),
+               filter(date > "2000-01-01", pen == "Pen: South Korea"),
              aes(x = date, y = goal, group = date), 
-             color = "red", size = 3.5, shape = 17) +
-  scale_color_manual(values = line_vals) +
+             color = "red", size = 4.5, shape = 17) +
   scale_x_date(limits = c(as.Date("2000-01-01"), as.Date("2018-01-01")),
                breaks = breaks, labels = labs,
                expand = c(0.05, 0.05)) +
   scale_y_discrete(expand = c(0.05, 0.2)) +
-  labs(title = "Japan vs. South Korea: The Eternal East Asian Rivalry",
+  labs(title = "Japan vs. South Korea: The Eternal East Asian Rivalry since 2000",
        x = NULL, y = "Goals Scored") +
+  # Custom annotations:
+  geom_segment(aes(x = as.Date("2007-07-28"), xend = as.Date("2007-08-30"),
+                   y = 1, yend = 1.2)) +
+  geom_segment(aes(x = as.Date("2011-01-25"), xend = as.Date("2011-03-10"),
+                   y = 3, yend = 3.2)) +
   annotate(geom = "text",
-           x = as.Date(""), 
-           y = 0.25,
-           label = "") +
-  annotate(geom = "text",
-           x = as.Date(""), 
-           y = 2.5,
-           label = "")
+           x = as.Date("2000-08-30"),
+           y = 5,
+           label = glue::glue(
+         "        : 5 Wins,         : 6 Wins, 5 Draws"),
+         hjust = 0,
+         family = "Roboto Condensed") +
+  annotate(geom = "label",
+           x = as.Date("2007-07-28"), 
+           y = 1.25,
+           label = "2007 Asian Cup: 3rd Place Match", 
+           hjust = 0, 
+           family = "Roboto Condensed") +
+  annotate(geom = "label",
+           x = as.Date("2011-01-25"), 
+           y = 3.3,
+           label = "2011 Asian Cup: Semi-Final", 
+           family = "Roboto Condensed",
+           hjust = 0) +
   theme_minimal() +
   theme(text = element_text(family = "Roboto Condensed"),
         title = element_text(size = 20),
         axis.text = element_text(size = 14),
-        axis.title = element_text(size = 16))
+        axis.title = element_text(size = 16),
+        legend.title = element_blank(),
+        legend.position = c(0.1, 0.8),
+        legend.box.background = element_rect(color = "black"))
 
+
+
+
+ggimage::geom_flag(data = flag_data,
+                     aes(x = x, y = y,
+                         image = image),       
+                     size = c(0.08, 0.08))
 ```
 
 
