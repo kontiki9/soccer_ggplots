@@ -107,14 +107,22 @@ liv_all <- liv_list %>% map(~ liv_clean(data = .)) %>%
 
 ```{r}
 library(gganimate)
+library(ggtextures)
 
+# Isotope?
 liv_all %>% 
-  ggplot(aes(x = Season, y = CP)) +
-  geom_col(position = "identity") +
+  mutate(image = "https://vectors.pro/wp-content/uploads/2018/04/liverpool-fc-football-club-logo-vector.png") %>% 
+  ggplot(aes(x = Season, y = CP, image = image)) +
+  geom_isotype_col(position = "identity") +
+  #geom_col(position = "identity") +
   theme_minimal() +
   transition_states(Match, transition_length = 1.5, state_length = 5) +
   labs(title = "Matchday {closest_state}")
 
+```
+
+
+```{r}
 col <- c(`2015-2016` = "#fc9272", `2016-2017` = "#ef3b2c", `2017-2018` = "#a50f15")
 
 liv_all %>% 
@@ -128,7 +136,8 @@ liv_all %>%
                   sec.axis = sec_axis(~ .)) +
   scale_color_manual(values = col) +
   theme_minimal() +
-  theme(panel.grid.minor.y = element_blank())
+  theme(panel.grid.minor.y = element_blank(),
+        text = element_text(family = "Roboto Condensed"))
 
 ```
 
