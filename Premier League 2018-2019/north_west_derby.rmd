@@ -11,8 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## R Markdown
 
-```{r}
-pacman::p_load(tidyverse, rvest, scales, extrafont, glue)
+```{r message=FALSE}
+pacman::p_load(tidyverse, rvest, scales, extrafont, glue, lubridate)
 
 loadfonts()
 ```
@@ -163,7 +163,7 @@ lfc_mufc_goals %>%
 ```
 
 
-
+## Waffle chart
 
 ```{r}
 library(waffle)
@@ -179,5 +179,79 @@ waffle(
   use_glyph = "soccer-ball-o", glyph_size = 5,
   legend_pos = "bottom"
 )
+```
+
+
+
+## Klopp vs. Mourinho
+
+```{r}
+# LFC: table.wikitable:nth-child(3)
+# MUFC: table.wikitable:nth-child(6)
+# W D L from LIVERPOOL's perspective
+
+url <- "https://en.wikipedia.org/wiki/Liverpool_F.C.–Manchester_United_F.C._rivalry"
+
+liv_results_raw <- url %>% 
+  read_html() %>% 
+  html_nodes("table.wikitable:nth-child(3)") %>% 
+  html_table() %>% 
+  flatten_df()
+
+liv_results_clean <- liv_results_raw %>% 
+  separate(Score, into = c("LFC", "MUFC"), sep = "–") %>% # copy-paste the double-dash...
+  mutate(result = case_when(
+    LFC > MUFC ~ "win",
+    LFC < MUFC ~ "loss",
+    LFC == MUFC ~ "draw"
+  ))
+
+mu_results_raw <- url %>% 
+  read_html() %>% 
+  html_nodes("table.wikitable:nth-child(6)") %>% 
+  html_table() %>% 
+  flatten_df()
+
+mu_results_clean <- mu_results_raw %>% 
+  separate(Score, into = c("MUFC", "LFC"), sep = "–") %>% # copy-paste the double-dash...
+  mutate(result = case_when(
+    LFC > MUFC ~ "win",
+    LFC < MUFC ~ "loss",
+    LFC == MUFC ~ "draw"
+  ))
+
+liv_mu_results_df <- liv_results_clean %>% 
+  bind_rows(mu_results_clean) %>% 
+  mutate(Date = dmy(Date),
+         result = as_factor(result),
+         result = fct_relevel(result, c("win", "draw", "loss"))) %>% 
+  arrange(Date)
+
+
+# PLOT
+
+liv_mu_results_df %>% 
+  mutate(result = fct_rev(result)) %>% 
+  ggplot(aes(x = Date, y = result, group = 1)) +
+  geom_rect(aes(xmin = as.Date("1895-10-12"), xmax = as.Date("2018-12-16")), 
+            ymin = 2.5, ymax = Inf,
+            fill = "red") +
+  scale_fill_manual(values = alpha("red", 0.2)) +
+  geom_path() +
+  geom_point() +
+  theme_minimal()
+
+# OR vertical color bars for W/D/L ??
+
+liv_mu_results_df %>% 
+  mutate(result = fct_rev(result)) %>% 
+  ggplot(aes(x = Date, y = result, group = 1)) +
+  geom_rect(aes(xmin = result, xmax = result), 
+            ymin = -Inf, ymax = Inf,
+            fill = "red") +
+  scale_fill_manual(values = alpha("red", 0.2)) +
+  geom_path() +
+  geom_point() +
+  theme_minimal()
 ```
 
