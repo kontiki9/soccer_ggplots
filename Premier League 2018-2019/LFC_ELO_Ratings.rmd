@@ -1,0 +1,170 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "December 20, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+pacman::p_load(tidyverse, scales, lubridate, ggrepel, glue, extrafont)
+loadfonts()
+
+```
+
+
+
+
+
+```{r}
+lfc_elo_raw <- read.csv("data/liverpool")
+
+lfc_elo_clean <- lfc_elo_raw %>% 
+  janitor::clean_names() %>% 
+  mutate(from = as.Date(from), 
+         to = as.Date(to))
+
+lfc_elo_clean %>% 
+  filter(from >= "2015-10-08") %>% 
+  ggplot(aes(x = from, y = elo)) +
+  geom_line() +
+  theme_minimal()
+
+lfc_elo_clean %>% 
+  filter(from >= "2016-05-18") 
+
+# LFC dates
+# Europa League Final 5.19 ranking day after
+
+# Klopp
+# Mainz: 2003-2004 Promotion to Bundesliga
+# Dortmund: 2010-2011, 2011-2012 Bundesliga champions
+# 2013 Champions League Final
+# LFC: October 2015 
+# End of first full season
+# 2018 Champions League Final
+
+```
+
+
+
+```{r}
+lfc_elo_raw <- read.csv("../data/liverpool")
+dortmund_elo_raw <- read.csv("../data/Dortmund")
+mainz_elo_raw <- read.csv("../data/Mainz")
+
+mainz_elo_clean <- mainz_elo_raw %>% 
+  mutate(From = as.Date(From), 
+         To = as.Date(To)) %>% 
+  filter(between(From, as.Date("2001-02-28"), as.Date("2008-05-19")))
+
+dortmund_elo_clean <- dortmund_elo_raw %>% 
+  mutate(From = as.Date(From), 
+         To = as.Date(To)) %>% 
+  filter(between(From, as.Date("2008-08-15"), as.Date("2015-05-24")))
+
+lfc_elo_clean <- lfc_elo_raw %>% 
+  mutate(From = as.Date(From), 
+         To = as.Date(To)) %>% 
+  filter(From >= as.Date("2015-10-05"))
+
+klopp <- lfc_elo_clean %>% 
+  bind_rows(dortmund_elo_clean) %>% 
+  bind_rows(mainz_elo_clean) %>% 
+  mutate(Club = as_factor(Club))
+```
+
+```{r}
+# Klopp
+# Mainz: 2003-2004 Promotion to Bundesliga    2004-05-24
+# Dortmund: 2010-2011   2011-05-14
+        #   2011-2012 Bundesliga champions   2012-05-05
+# 2013 Champions League Final 2013-05-25
+# LFC: October 2015     2015-10-08
+# Europa League Final 2016-05-18
+# 2018 Champions League Final  2018-05-26
+
+annotations_df <- data.frame(
+  date = as.Date(c("2004-05-24", "2011-05-14", "2012-05-05", 
+                   "2013-05-25", "2016-05-18", "2018-05-26")),
+  y = c(1540, 1844, 1911, 1945, 1800, 1913),
+  text = c("Promotion to Bundesliga", 
+           "Bundesliga Champions", 
+           "Bundesliga Champions",
+           "2013 Champions League Final",
+           "2016 Europa League Final",
+           "2018 Champions League Final")
+)
+
+library(teamcolors)
+
+cols <- c("Liverpool" = "#D00027", "Dortmund" = "#FFE500", "Mainz" = "#C4122E")
+
+```
+
+
+
+```{r klopp chart, fig.height = 8, fig.width=11}
+klopp %>% 
+  ggplot() +
+  geom_line(aes(From, y = Elo, color = Club)) +
+  geom_label_repel(data = annotations_df,
+            aes(x = date, y = y, label = text),
+            min.segment.length = 0,
+            nudge_x = -50, nudge_y = 100) +
+  scale_x_date(breaks = pretty_breaks(10)) +
+  scale_y_continuous(limits = c(1430, 2100), position = "right") +
+  scale_color_manual(values = cols, guide = FALSE) +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 15),
+        axis.text = element_text(size = 8)) +
+  labs(x = NULL, y = "Club Elo Rating", 
+       title = "Juergen Klopp's Managerial History",
+       subtitle = glue("
+                       After learning the managerial ropes at Mainz, Klopp has given both Dortmund
+                       and Liverpool the adrenaline shot needed to climb back toward the top!"), 
+       caption = glue("
+                      @R_by_Ryo
+                      Source: clubelo.com")) +
+  annotate(geom = "segment", 
+           x = as.Date("2001-02-28"), xend = as.Date("2008-06-30"),
+           y = 2050, yend = 2050, color = "red") +
+  annotate(geom = "text", 
+           x = as.Date("2004-10-29"), y = 2080, 
+           label = "Mainz", family = "Roboto Condensed", 
+           color = "#C4122E", size = 8) +
+  annotate(geom = "segment", 
+           x = as.Date("2008-07-18"), xend = as.Date("2015-06-30"),
+           y = 2050, yend = 2050) +
+  annotate(geom = "text", 
+           x = as.Date("2012-01-08"), y = 2080, 
+           label = "Borussia Dortmund", family = "Roboto Condensed",
+           size = 8) +
+  annotate(geom = "segment", 
+           x = as.Date("2015-10-08"), xend = as.Date("2018-12-30"),
+           y = 2050, yend = 2050, color = "red") +
+  annotate(geom = "text", 
+           x = as.Date("2017-05-19"), y = 2080, 
+           label = "Liverpool", family = "Roboto Condensed", 
+           color = "#D00027", size = 8)
+```
+
+After learning the managerial ropes at Mainz, Klopp has given both Dortmund and Liverpool the adrenaline shot needed to climb back toward the top!
+
+
+
+
+
+
+## bump chart for 2018
+
+```{r}
+
+```
+
