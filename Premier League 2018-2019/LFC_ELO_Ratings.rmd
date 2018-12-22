@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## R Markdown
 
-```{r}
+```{r message=FALSE}
 pacman::p_load(tidyverse, scales, lubridate, ggrepel, glue, extrafont)
 loadfonts()
 
@@ -54,28 +54,21 @@ lfc_elo_clean %>%
 
 
 ```{r}
-lfc_elo_raw <- read.csv("../data/liverpool")
-dortmund_elo_raw <- read.csv("../data/Dortmund")
-mainz_elo_raw <- read.csv("../data/Mainz")
+lfc_elo_raw <- read_csv("http://api.clubelo.com/liverpool")
+dortmund_elo_raw <- read_csv("http://api.clubelo.com/Dortmund")
+mainz_elo_raw <- read_csv("http://api.clubelo.com/Mainz")
 
 mainz_elo_clean <- mainz_elo_raw %>% 
-  mutate(From = as.Date(From), 
-         To = as.Date(To)) %>% 
   filter(between(From, as.Date("2001-02-28"), as.Date("2008-05-19")))
 
 dortmund_elo_clean <- dortmund_elo_raw %>% 
-  mutate(From = as.Date(From), 
-         To = as.Date(To)) %>% 
   filter(between(From, as.Date("2008-08-15"), as.Date("2015-05-24")))
 
 lfc_elo_clean <- lfc_elo_raw %>% 
-  mutate(From = as.Date(From), 
-         To = as.Date(To)) %>% 
   filter(From >= as.Date("2015-10-05"))
 
 klopp <- lfc_elo_clean %>% 
-  bind_rows(dortmund_elo_clean) %>% 
-  bind_rows(mainz_elo_clean) %>% 
+  bind_rows(dortmund_elo_clean, mainz_elo_clean) %>% 
   mutate(Club = as_factor(Club))
 ```
 
@@ -90,18 +83,20 @@ klopp <- lfc_elo_clean %>%
 # 2018 Champions League Final  2018-05-26
 
 annotations_df <- data.frame(
-  date = as.Date(c("2004-05-24", "2011-05-14", "2012-05-05", 
+  date = as.Date(c("2004-05-24", "2011-05-15", "2012-05-05", 
                    "2013-05-25", "2016-05-18", "2018-05-26")),
-  y = c(1540, 1844, 1911, 1945, 1800, 1913),
-  text = c("Promotion to Bundesliga", 
-           "Bundesliga Champions", 
-           "Bundesliga Champions",
+  lab_pos = as.Date(c("2004-05-24", "2009-09-01", "2009-09-01",
+                      "2013-05-01", "2016-01-01", "2017-10-01")),
+  y = c(1700, 1920, 1970, 2020, 1970, 2020),
+  text = c("Promotion to Bundesliga ('03-'04)", 
+           "Bundesliga Champions ('10-'11)", 
+           "Bundesliga Champions ('11-'12)",
            "2013 Champions League Final",
            "2016 Europa League Final",
            "2018 Champions League Final")
 )
 
-library(teamcolors)
+#library(teamcolors)
 
 cols <- c("Liverpool" = "#D00027", "Dortmund" = "#FFE500", "Mainz" = "#C4122E")
 
@@ -113,28 +108,51 @@ cols <- c("Liverpool" = "#D00027", "Dortmund" = "#FFE500", "Mainz" = "#C4122E")
 klopp %>% 
   ggplot() +
   geom_line(aes(From, y = Elo, color = Club)) +
-  geom_label_repel(data = annotations_df,
-            aes(x = date, y = y, label = text),
-            min.segment.length = 0,
-            nudge_x = -50, nudge_y = 100) +
   scale_x_date(breaks = pretty_breaks(10)) +
   scale_y_continuous(limits = c(1430, 2100), position = "right") +
   scale_color_manual(values = cols, guide = FALSE) +
   theme_minimal() +
   theme(text = element_text(family = "Roboto Condensed"),
-        title = element_text(size = 15),
-        axis.text = element_text(size = 8)) +
+        plot.title = element_text(size = 25),
+        plot.subtitle = element_text(size = 15),
+        plot.caption = element_text(size = 12),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 15)) +
   labs(x = NULL, y = "Club Elo Rating", 
-       title = "Juergen Klopp's Managerial History",
+       title = "Jürgen Klopp's Managerial History",
        subtitle = glue("
                        After learning the managerial ropes at Mainz, Klopp has given both Dortmund
-                       and Liverpool the adrenaline shot needed to climb back toward the top!"), 
+                       and Liverpool the adrenaline shot needed to climb back to the top!"), 
        caption = glue("
                       @R_by_Ryo
                       Source: clubelo.com")) +
+  # Connecting segments:
+  annotate(geom = "segment", 
+           x = as.Date("2004-05-24"), xend = as.Date("2004-05-24"),
+           y = 1541.472, yend = 1700) +
+  annotate(geom = "segment", 
+           x = as.Date("2011-05-14"), xend = as.Date("2010-01-01"),
+           y = 1844.078, yend = 1920) +
+  annotate(geom = "segment", 
+           x = as.Date("2012-05-05"), xend = as.Date("2011-12-01"),
+           y = 1912.054, yend = 1970) +
+  annotate(geom = "segment", 
+           x = as.Date("2013-05-01"), xend = as.Date("2013-05-01"),
+           y = 1945.104, yend = 2020) +
+  annotate(geom = "segment", 
+           x = as.Date("2016-05-18"), xend = as.Date("2016-03-01"),
+           y = 1800.110, yend = 1970) +
+  annotate(geom = "segment", 
+           x = as.Date("2018-05-26"), xend = as.Date("2017-10-01"),
+           y = 1913.713, yend = 2020) +
+  # achievements text:
+  geom_label(data = annotations_df, 
+            aes(x = lab_pos, y = y, label = text),
+            family = "Roboto Condensed", size = 4.5) +
+  # Team names + bars:
   annotate(geom = "segment", 
            x = as.Date("2001-02-28"), xend = as.Date("2008-06-30"),
-           y = 2050, yend = 2050, color = "red") +
+           y = 2050, yend = 2050, color = "#C4122E") +
   annotate(geom = "text", 
            x = as.Date("2004-10-29"), y = 2080, 
            label = "Mainz", family = "Roboto Condensed", 
@@ -148,7 +166,7 @@ klopp %>%
            size = 8) +
   annotate(geom = "segment", 
            x = as.Date("2015-10-08"), xend = as.Date("2018-12-30"),
-           y = 2050, yend = 2050, color = "red") +
+           y = 2050, yend = 2050, color = "#D00027") +
   annotate(geom = "text", 
            x = as.Date("2017-05-19"), y = 2080, 
            label = "Liverpool", family = "Roboto Condensed", 
