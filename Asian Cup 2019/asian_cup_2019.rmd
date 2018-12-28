@@ -1,0 +1,205 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "December 26, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message=FALSE}
+pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi,
+               glue, extrafont, rvest, ggtextures)
+loadfonts()
+
+```
+
+
+```{r}
+ac_top_scorers <- data.frame(
+  player = c("Ali Daei", "Ali Daei", "Ali Daei",
+             "Lee Dong Gook", "Lee Dong Gook",
+             "Naohiro Takahara", "Naohiro Takahara",
+             "Jassem Al-Houwaidi", "Jassem Al-Houwaidi",
+             "Younis Mahmoud", "Younis Mahmoud", "Younis Mahmoud", "Younis Mahmoud"),
+  country = c("Iran", "Iran", "Iran",
+              "South Korea", "South Korea",
+              "Japan", "Japan",
+              "Kuwait", "Kuwait",
+              "Iraq", "Iraq", "Iraq", "Iraq"),
+  tournament = c("1996", "2000", "2004",
+                 "2000", "2004",
+                 "2000", "2004",
+                 "1996", "2000",
+                 "2004", "2007", "2011", "2015"),
+  goals = c(8, 3, 3,
+            6, 4,
+            5, 4,
+            6, 2,
+            1, 4, 1, 2)
+)
+
+# soccer ball images
+ac_top_scorers <- ac_top_scorers %>% 
+  mutate(image = case_when(
+    tournament == "2004" ~ "http://football-balls.com/ball_files/2004-asian-cup-adidas-roteiro-official-match-ball.png",
+    tournament == "2007" ~ "http://football-balls.com/ball_files/2007-asian-cup-mercurial-veloci-official-match-ball.png",
+    tournament == "2011" ~ "http://football-balls.com/ball_files/2011-asian-cup-nike-total-90-tracer-official-match-ball.png",
+    tournament == "2015" ~ "http://football-balls.com/ball_files/2015-asian-cup-nike-ordem-2-official-match-ball.png",
+    TRUE ~ "https://i.pinimg.com/originals/e7/d7/19/e7d7190f0b5b3abd4f6c17e2c7989ec3.jpg"
+  ))
+```
+
+
+```{r}
+ac_top_scorers %>% 
+  ggplot(aes(x = player, y = goals,
+             image = image)) +
+  geom_isotype_col()
+```
+
+
+
+
+
+
+
+# Goals scored per tournament
+
+```{r}
+wiki_url <- "https://en.wikipedia.org"
+acup_url <- "https://en.wikipedia.org/wiki/AFC_Asian_Cup"
+
+cup_links <- read_html(acup_url) %>% 
+  html_nodes("br+ i a") %>% 
+  html_attr("href") %>% 
+  .[-17:-18]
+
+
+acup_df <- cup_links %>% 
+  as_data_frame() %>% 
+  mutate(cup = str_remove(value, "\\/wiki\\/") %>% str_replace_all("_", " ")) %>% 
+  rename(link = value)
+
+
+
+goals_info <- function(x) {
+  goal_info <- wiki_url %>% 
+    html_session() %>% 
+    jump_to(x) %>% 
+    html_nodes(".vcalendar") %>% 
+    html_table(header = FALSE) %>% 
+    flatten_df() %>% 
+    spread(key = X1, value = X2) %>% 
+    select(`Goals scored`) %>% 
+    mutate(`Goals scored` = str_remove_all(`Goals scored`, pattern = ".*\\(") %>% 
+             str_extract_all("\\d+\\.*\\d*") %>% as.numeric)
+}
+
+team_num_info <- function(x) {
+  team_num_info <- wiki_url %>% 
+    html_session() %>% 
+    jump_to(x) %>% 
+    html_nodes(".vcalendar") %>% 
+    html_table(header = FALSE) %>% 
+    flatten_df() %>% 
+    spread(key = X1, value = X2) %>% 
+    select(`Teams`) %>% 
+    mutate(`Teams` = as.numeric(`Teams`))
+}
+
+match_num_info <- function(x) {
+  match_num_info <- wiki_url %>% 
+    html_session() %>% 
+    jump_to(x) %>% 
+    html_nodes(".vcalendar") %>% 
+    html_table(header = FALSE) %>% 
+    flatten_df() %>% 
+    spread(key = X1, value = X2) %>% 
+    janitor::clean_names() %>% 
+    select(matches_played) %>% 
+    mutate(matches_played = as.numeric(matches_played))
+}
+
+
+# all together:
+goals_data <- acup_df %>% 
+  mutate(goals_per_game = map(acup_df$link, goals_info) %>% unlist,
+         team_num = map(acup_df$link, team_num_info) %>% unlist,
+         match_num = map(acup_df$link, match_num_info) %>% unlist)
+
+```
+
+```{r}
+ac_goals_df <- goals_data %>% 
+  mutate(label = cup %>% str_extract("[0-9]+") %>% str_replace("..", "'"),
+         team_num = case_when(
+           is.na(team_num) ~ 16,
+           TRUE ~ team_num
+         )) %>% 
+  arrange(cup) %>% 
+  mutate(label = factor(label, label),
+         team_num = c(4, 4, 4, 5, 6, 6, 10, 10, 10, 8, 12, 12, 16, 16, 16, 16))
+```
+
+
+```{r}
+ac_goals_df %>% 
+  ggplot(aes(x = label, y = goals_per_game, group = 1)) +
+  geom_line() +
+  geom_point() +
+  theme_minimal()
+# annotate number of matches played on top as strip
+# fit avg goals per game per each sequence of # of matches >>> kinda like splines
+# add AFC logo? top right corner
+# put top scorer country as geom_point?
+# soccer ball emoji as geom_point?
+# patchwork to include top scoring countries + other additional info
+```
+
+
+
+
+
+
+
+```{r}
+wiki_url %>% 
+  html_session() %>% 
+  jump_to("/wiki/2015_AFC_Asian_Cup") %>% 
+  html_nodes(".vcalendar") %>% 
+  html_table(header = FALSE) %>% 
+  flatten_df() %>% 
+  spread(key = X1, value = X2) %>% 
+  select(`Goals scored`) %>% 
+  mutate(`Goals scored` = str_remove_all(`Goals scored`, pattern = ".*\\(") %>% 
+           str_extract_all("\\d+\\.*\\d*") %>% as.numeric)
+```
+
+
+```{r}
+###
+
+one_cup <- "https://en.wikipedia.org/wiki/1968_AFC_Asian_Cup"
+
+copa <- one_cup %>% 
+  read_html() %>% 
+  html_nodes(".vcalendar") %>% 
+  html_table(header = FALSE) %>% 
+  flatten_df() %>% 
+  spread(key = X1, value = X2) %>% 
+  janitor::clean_names() %>% 
+  select(goals_scored) %>% 
+  mutate(`Goals scored` = str_remove_all(`Goals scored`, pattern = ".*\\(") %>% 
+           str_extract_all("\\d+\\.*\\d*") %>% as.numeric) # \\(.*)
+
+```
+
+- Grab link to each Asian Cup
+- jump_to()
+- find .infobox table
+- select only 'Goals Scored' column
+- map through each Asian Cup
+
