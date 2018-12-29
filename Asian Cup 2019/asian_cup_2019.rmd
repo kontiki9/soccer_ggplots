@@ -11,7 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r message=FALSE}
 pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi,
-               glue, extrafont, rvest, ggtextures)
+               glue, extrafont, rvest, ggtextures, cowplot)
+# necessary for Roboto Condensed font
 loadfonts()
 
 ```
@@ -150,6 +151,10 @@ ac_goals_df %>%
   ggplot(aes(x = label, y = goals_per_game, group = 1)) +
   geom_line() +
   geom_point() +
+  #ggimage::geom_emoji(aes(image = '26bd'), size = 0.03) +
+  labs(y = "Goals per Game",
+       title = "Goals per Game throughout the Asian Cup.",
+       subtitle = "Odd dip throughout the 80s to early 90s...")
   theme_minimal()
 # annotate number of matches played on top as strip
 # fit avg goals per game per each sequence of # of matches >>> kinda like splines
@@ -197,9 +202,116 @@ copa <- one_cup %>%
 
 ```
 
-- Grab link to each Asian Cup
-- jump_to()
-- find .infobox table
-- select only 'Goals Scored' column
-- map through each Asian Cup
 
+
+
+
+
+
+
+# Asian Cup record
+
+```{r}
+# .navigation-not-searchable+ .jquery-tablesorter
+acup_url <- "https://en.wikipedia.org/wiki/AFC_Asian_Cup"
+
+acup_winners_raw <- acup_url %>% 
+  read_html() %>% 
+  html_nodes("#mw-content-text > div > table:nth-child(30)") %>% 
+  html_table() %>% 
+  flatten_df()
+
+```
+
+```{r}
+acup_winners_clean <- acup_winners_raw %>% 
+  janitor::clean_names() %>% 
+  slice(1:8) %>% 
+  select(-fourth_place, -total_top_four) %>% 
+  separate(winners, into = c("first_num", "first_place_year"), sep = " ", extra = "merge") %>% 
+  separate(runners_up, into = c("second_num", "second_place_year"), sep = " ", extra = "merge") %>% 
+  separate(third_place, into = c("third_num", "third_place_year"), sep = " ", extra = "merge") %>% 
+  mutate_all(funs(str_replace_all(., "–", "0"))) %>% 
+  mutate_at(vars(contains("num")), funs(as.numeric)) %>% 
+  mutate(team = if_else(team == "Israel1", "Israel", team)) %>% 
+  gather(key = "key", value = "value", -team, 
+         -first_place_year, -second_place_year, -third_place_year) %>% 
+  mutate(key = case_when(
+           key == "first_num" ~ "Champions",
+           key == "second_num" ~ "Runners-up",
+           key == "third_num" ~ "3rd Place"
+         ),
+         key = key %>% fct_relevel(c("Champions", "Runners-up", "3rd Place"))) %>% 
+  # hack-ish solution?
+  arrange(key, value) %>% 
+  mutate(team = as_factor(team),
+         order = row_number())
+```
+
+```{r, fig.width = 8, fig.height = 6}
+a <- acup_winners_clean %>% 
+  ggplot(aes(value, team, color = key)) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c("Champions" = "#FFCC33",
+                                "Runners-up" = "#999999",
+                                "3rd Place" = "#CC6600"),
+                     guide = FALSE) +
+  labs(x = "Number of Occurrence",
+       title = "Winners & Losers of the Asian Cup!",
+       subtitle = "Four-time Champions, Japan, only won their first in 1992!",
+       caption = glue("Note: Israel was expelled by the AFC in 1974 while Australia joined the AFC in 2006.")) +
+  facet_wrap(~key) +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        axis.title.y = element_blank(),
+        plot.caption = element_text(hjust = 0),
+        panel.border = element_rect(fill = NA, colour = "grey20"),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 12))
+
+#null_dev_env <- new.env(parent = emptyenv())
+set_null_device("pdf")
+cairo_pdf()
+ggdraw(add_sub(a, label = "Source: Wikipedia\nBy @R_by_Ryo", x = 0.95, size = 8))
+
+Cairo::Cairo(1000, 750, "test.png", bg = "white")
+last_plot()
+dev.off()
+```
+
+
+
+
+## Working hours & Productivity
+
+```{r}
+acup_url <- "https://en.wikipedia.org/wiki/2019_AFC_Asian_Cup"
+
+acup_kickoff <- acup_url %>% 
+  read_html() %>% 
+  html_nodes("time") %>% 
+  html_text() %>% 
+  as_data_frame()
+
+# time
+```
+
+- calculate +90 minutes for entire game duration
+- NOT count extra time or stoppage time
+- cross-refernce with other local time zones
+- count up total number of hours per each spectator country
+
+```{r}
+
+tz <- "Asia/"
+acup_kickoff %>% 
+  mutate(match_num = row_number(),
+         match_type = if_else(between(match_num, 37, 51), "Knock-Out Stage", "Group Stage"),
+         time = value %>% str_replace("\\(.*\\)", "")) %>% 
+  mutate(time2 = dmy_hm(time),
+         time_jp = with_tz(time2, tz = "Asia/Tokyo"),
+         time_ac = with_tz(time2, tz = "Asia/Dubai"),
+         time_ac = tz("Asia/Dubai"))
+```
+
+ymd_hms("2011-07-01 09:00:00", tz = "Pacific/Auckland")
