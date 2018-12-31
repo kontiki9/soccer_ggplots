@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r message=FALSE}
 pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi,
-               glue, extrafont, rvest, ggtextures, cowplot)
+               glue, extrafont, rvest, ggtextures, cowplot, countrycode, ggimage)
 # necessary for Roboto Condensed font
 loadfonts()
 
@@ -239,44 +239,62 @@ acup_winners_clean <- acup_winners_raw %>%
   mutate(key = case_when(
            key == "first_num" ~ "Champions",
            key == "second_num" ~ "Runners-up",
-           key == "third_num" ~ "3rd Place"
+           key == "third_num" ~ "Third Place"
          ),
-         key = key %>% fct_relevel(c("Champions", "Runners-up", "3rd Place"))) %>% 
+         key = key %>% fct_relevel(c("Champions", "Runners-up", "Third Place"))) %>% 
   # hack-ish solution?
   arrange(key, value) %>% 
   mutate(team = as_factor(team),
-         order = row_number())
+         order = row_number(),
+         image = team %>% 
+           countrycode(., origin = "country.name", destination = "iso2c"))
 ```
 
 ```{r, fig.width = 8, fig.height = 6}
 a <- acup_winners_clean %>% 
   ggplot(aes(value, team, color = key)) +
-  geom_point(size = 2) +
+  geom_point(size = 5) +
   scale_color_manual(values = c("Champions" = "#FFCC33",
                                 "Runners-up" = "#999999",
-                                "3rd Place" = "#CC6600"),
+                                "Third Place" = "#CC6600"),
                      guide = FALSE) +
   labs(x = "Number of Occurrence",
        title = "Winners & Losers of the Asian Cup!",
-       subtitle = "Four-time Champions, Japan, only won their first in 1992!",
-       caption = glue("Note: Israel was expelled by the AFC in 1974 while Australia joined the AFC in 2006.")) +
+       subtitle = glue("
+                       Ordered by number of Asian Cup(s) won.
+                       Four-time Champions, Japan, only won their first in 1992!"),
+       caption = glue("
+                      Note: Israel was expelled by the AFC in 1974 while Australia joined the AFC in 2006.
+                      Source: Wikipedia
+                      By @R_by_Ryo")) +
   facet_wrap(~key) +
   theme_minimal() +
   theme(text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 12),
         axis.title.y = element_blank(),
-        plot.caption = element_text(hjust = 0),
+        axis.title.x = element_text(size = 12),
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 12),
+        plot.caption = element_text(hjust = 0, size = 10),
         panel.border = element_rect(fill = NA, colour = "grey20"),
         panel.grid.minor.x = element_blank(),
-        strip.text = element_text(size = 12))
+        strip.text = element_text(size = 16))
+
+a +
+  geom_flag(y = -2, aes(image = image), size = 0.15) +
+  expand_limits(y = -2)
+
+# insert_yaxis_grob()
 
 #null_dev_env <- new.env(parent = emptyenv())
-set_null_device("pdf")
-cairo_pdf()
-ggdraw(add_sub(a, label = "Source: Wikipedia\nBy @R_by_Ryo", x = 0.95, size = 8))
-
-Cairo::Cairo(1000, 750, "test.png", bg = "white")
-last_plot()
-dev.off()
+# set_null_device("pdf")
+# cairo_pdf()
+# ggdraw(add_sub(a, label = "Source: Wikipedia\nBy @R_by_Ryo", x = 0.95, size = 8))
+# 
+# Cairo::Cairo(1000, 750, "test.png", bg = "white")
+# last_plot()
+# dev.off()
 ```
 
 
@@ -304,14 +322,21 @@ acup_kickoff <- acup_url %>%
 ```{r}
 
 tz <- "Asia/"
-acup_kickoff %>% 
+acup_times_df <- acup_kickoff %>% 
   mutate(match_num = row_number(),
          match_type = if_else(between(match_num, 37, 51), "Knock-Out Stage", "Group Stage"),
          time = value %>% str_replace("\\(.*\\)", "")) %>% 
   mutate(time2 = dmy_hm(time),
-         time_jp = with_tz(time2, tz = "Asia/Tokyo"),
-         time_ac = with_tz(time2, tz = "Asia/Dubai"),
-         time_ac = tz("Asia/Dubai"))
+         time_ac2 = force_tz(time2, "Asia/Dubai"), # time based in UTC +4
+         time_jp = with_tz(time_ac2, tz = "Asia/Tokyo"), # UTC +4 time converted to Japan
+         time_jp_end = time_jp + hm("2 0"),
+         time_ac = with_tz(time2, tz = "America/New_York")) %>% # UTC +4 time to NYC
+  mutate(diff = make_difftime(hour = 2),
+         int = as.interval(diff, time_ac2),
+         jp_work = as.interval(ymd_hms("2019-01-05 09:00:00"), ymd_hms("2019-01-05 12:00:00")))
+
+jp_work %within% int
+
 ```
 
 ymd_hms("2011-07-01 09:00:00", tz = "Pacific/Auckland")
