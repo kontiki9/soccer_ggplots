@@ -9,6 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Load packages
+
 ```{r message=FALSE}
 pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi,
                glue, extrafont, rvest, ggtextures, cowplot, countrycode, ggimage)
@@ -17,6 +19,7 @@ loadfonts()
 
 ```
 
+# Top goal scorers
 
 ```{r}
 ac_top_scorers <- data.frame(
@@ -35,33 +38,89 @@ ac_top_scorers <- data.frame(
                  "2000", "2004",
                  "1996", "2000",
                  "2004", "2007", "2011", "2015"),
-  goals = c(8, 3, 3,
+  goals = as.numeric(c(8, 3, 3,
             6, 4,
             5, 4,
             6, 2,
-            1, 4, 1, 2)
+            1, 4, 1, 2)),
+  total_goals = as.numeric(c(14, 14, 14,
+            10, 10,
+            9, 9,
+            8, 8,
+            8, 8, 8, 8))
 )
 
 # soccer ball images
+# https://i.pinimg.com/originals/e7/d7/19/e7d7190f0b5b3abd4f6c17e2c7989ec3.jpg
+# https://www.emoji.co.uk/files/microsoft-emojis/activity-windows10/8356-soccer-ball.png
 ac_top_scorers <- ac_top_scorers %>% 
   mutate(image = case_when(
     tournament == "2004" ~ "http://football-balls.com/ball_files/2004-asian-cup-adidas-roteiro-official-match-ball.png",
     tournament == "2007" ~ "http://football-balls.com/ball_files/2007-asian-cup-mercurial-veloci-official-match-ball.png",
     tournament == "2011" ~ "http://football-balls.com/ball_files/2011-asian-cup-nike-total-90-tracer-official-match-ball.png",
     tournament == "2015" ~ "http://football-balls.com/ball_files/2015-asian-cup-nike-ordem-2-official-match-ball.png",
-    TRUE ~ "https://i.pinimg.com/originals/e7/d7/19/e7d7190f0b5b3abd4f6c17e2c7989ec3.jpg"
-  ))
+    TRUE ~ "https://www.emoji.co.uk/files/microsoft-emojis/activity-windows10/8356-soccer-ball.png")) %>% 
+  mutate(country_code = country %>% 
+           countrycode(., origin = "country.name", destination = "iso2c"))
+
+
+ac_top_scorers %>% 
+  gather(key = "player", value = "tournament")
+
+ac_top_scorers %>% 
+  distinct(player, .keep_all = TRUE)
 ```
 
 
 ```{r}
-ac_top_scorers %>% 
-  ggplot(aes(x = player, y = goals,
+ac_top_graph <- ac_top_scorers %>% 
+  distinct(player, .keep_all = TRUE) %>% 
+  ggplot(aes(x = reorder(player, total_goals), y = total_goals,
              image = image)) +
-  geom_isotype_col()
+  #ggimage::geom_emoji(aes(image = '26bd'), size = 0.06) +
+  geom_isotype_col(img_width = grid::unit(1, "native"), img_height = NULL,
+    ncol = NA, nrow = 1, hjust = 0, vjust = 0.5) +
+  coord_flip() +
+  #geom_flag(y = -1.5, aes(image = country_code), size = 0.1) +
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14),
+                     expand = c(0, 0), 
+                     limits = c(0, 15)) +
+  #expand_limits(y = -2) +
+  ggthemes::theme_solarized() +
+  labs(title = "Top Scorers of the Asian Cup!",
+       subtitle = "Most goals in a single tournament is 8 by Ali Daei in 1996.",
+       y = "Number of Goals", x = NULL) +
+  theme(text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        axis.text = element_text(size = 12),
+        axis.line.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.ticks.y = element_blank())
+
+# scale them differently as flag sizes are different...
+pimage <- axis_canvas(ac_top_graph, axis = 'y') + 
+  draw_image("https://upload.wikimedia.org/wikipedia/commons/c/ca/Flag_of_Iran.svg", 
+             y = 13, scale = 1.5) +
+  draw_image("https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg", 
+             y = 10, scale = 1.7) +
+  draw_image("https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg", 
+             y = 7, scale = 1.7) +
+  draw_image("https://upload.wikimedia.org/wikipedia/commons/f/f6/Flag_of_Iraq.svg", 
+             y = 4, scale = 1.6) +
+  draw_image("https://upload.wikimedia.org/wikipedia/commons/a/aa/Flag_of_Kuwait.svg", 
+             y = 1, scale = 1.2)
+
+# insert the image strip into the bar plot and draw  
+ggdraw(insert_yaxis_grob(ac_top_graph, pimage, position = "left"))
 ```
 
 
+```{r}
+theme_void
+ggthemes::theme_wsj
+ggthemes::theme_solarized
+```
 
 
 
@@ -152,19 +211,39 @@ ac_goals_df %>%
   geom_line() +
   geom_point() +
   #ggimage::geom_emoji(aes(image = '26bd'), size = 0.03) +
-  labs(y = "Goals per Game",
+  scale_y_continuous(limit = c(NA, 5.5)) +
+  labs(x = NULL, y = "Goals per Game",
        title = "Goals per Game throughout the Asian Cup.",
-       subtitle = "Odd dip throughout the 80s to early 90s...")
-  theme_minimal()
-# annotate number of matches played on top as strip
-# fit avg goals per game per each sequence of # of matches >>> kinda like splines
-# add AFC logo? top right corner
-# put top scorer country as geom_point?
-# soccer ball emoji as geom_point?
-# patchwork to include top scoring countries + other additional info
+       subtitle = "Odd dip throughout the 80s to early 90s...") +
+  theme_minimal() +
+  theme() +
+  annotate(geom = "text", x = "'56", y = 5.5, 
+           label = "Total Number of Games Played", hjust = 0) +
+  annotate(geom = "text", x = "'60", y = 5.2, label = "6") +
+  annotate(geom = "segment", x = 1, xend = 3, y = 5.1, yend = 5.1) +
+  annotate(geom = "text", x = "'68", y = 5.2, label = "10") +
+  annotate(geom = "segment", x = 3.8, xend = 4.2, y = 5.1, yend = 5.1) +
+  annotate(geom = "text", x = "'72", y = 5.2, label = "13") +
+  annotate(geom = "segment", x = 4.8, xend = 5.2, y = 5.1, yend = 5.1) +
+  annotate(geom = "text", x = "'76", y = 5.2, label = "10") +
+  annotate(geom = "segment", x = 5.8, xend = 6.2, y = 5.1, yend = 5.1) +
+  annotate(geom = "text", x = "'84", y = 5.2, label = "24") +
+  annotate(geom = "segment", x = 7, xend = 9, y = 5.1, yend = 5.1) +
+  annotate(geom = "text", x = "'92", y = 5.2, label = "16") +
+  annotate(geom = "segment", x = 9.8, xend = 10.2, y = 5.1, yend = 5.1) +
+  annotate(geom = "text", x = 11.5, y = 5.2, label = "26") +
+  annotate(geom = "segment", x = 11, xend = 12, y = 5.1, yend = 5.1) +
+  annotate(geom = "text", x = 14.5, y = 5.2, label = "32") +
+  annotate(geom = "segment", x = 13, xend = 16, y = 5.1, yend = 5.1)
+
 ```
 
-
+- annotate number of matches played on top as strip
+- fit avg goals per game per each sequence of # of matches >>> kinda like splines
+- add AFC logo? top right corner
+- put top scorer country as geom_point?
+- soccer ball emoji as geom_point?
+- patchwork to include top scoring countries + other additional info
 
 
 
@@ -300,7 +379,7 @@ a +
 
 
 
-## Working hours & Productivity
+# Working hours & Productivity
 
 ```{r}
 acup_url <- "https://en.wikipedia.org/wiki/2019_AFC_Asian_Cup"
@@ -321,10 +400,11 @@ acup_kickoff <- acup_url %>%
 
 ```{r}
 
-tz <- "Asia/"
+#tz <- "Asia/"
 acup_times_df <- acup_kickoff %>% 
   mutate(match_num = row_number(),
-         match_type = if_else(between(match_num, 37, 51), "Knock-Out Stage", "Group Stage"),
+         match_type = if_else(between(match_num, 37, 51), 
+                              "Knock-Out Stage", "Group Stage"),
          time = value %>% str_replace("\\(.*\\)", "")) %>% 
   mutate(time2 = dmy_hm(time),
          time_ac2 = force_tz(time2, "Asia/Dubai"), # time based in UTC +4
@@ -333,10 +413,24 @@ acup_times_df <- acup_kickoff %>%
          time_ac = with_tz(time2, tz = "America/New_York")) %>% # UTC +4 time to NYC
   mutate(diff = make_difftime(hour = 2),
          int = as.interval(diff, time_ac2),
-         jp_work = as.interval(ymd_hms("2019-01-05 09:00:00"), ymd_hms("2019-01-05 12:00:00")))
+         jp_start = ymd_hms("2019-01-05 09:00:00"),
+         jp_end = ymd_hms("2019-01-05 12:00:00"),
+         jp_work = as.interval(jp_start, jp_end))
 
-jp_work %within% int
+acup_times_df$jp_work %within% acup_times_df$int
 
 ```
 
 ymd_hms("2011-07-01 09:00:00", tz = "Pacific/Auckland")
+
+
+# Japan vs. RIVALS
+
+- use Kaggle international results
+- filter AFC Asian Cup, Friendly, AFC Asian Cup qualification
+- filter Asia >>> take out UEFA countries like Kazakhstan, Georgia, Israel, etc.
+
+```{r}
+
+```
+
