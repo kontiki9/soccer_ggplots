@@ -12,11 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 # Load packages
 
 ```{r message=FALSE}
-pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi, magick,
-               glue, extrafont, rvest, ggtextures, cowplot, countrycode, ggimage)
+pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi, magick, gapminder,
+               glue, extrafont, rvest, ggtextures, cowplot, countrycode, ggimage,
+               polite)
 # necessary for Roboto Condensed font
 loadfonts()
-
 ```
 
 # Top goal scorers
@@ -88,10 +88,11 @@ ac_top_graph <- ac_top_scorers %>%
   #expand_limits(y = -2) +
   ggthemes::theme_solarized() +
   labs(title = "Top Scorers of the Asian Cup!",
-       subtitle = "Most goals in a single tournament is 8 by Ali Daei in 1996.",
+       subtitle = "Most goals in a single tournament: 8 (Ali Daei, 1996)",
        y = "Number of Goals", x = NULL) +
   theme(text = element_text(family = "Roboto Condensed"),
         title = element_text(size = 18),
+        subtitle = element_text(size = 14),
         axis.text = element_text(size = 12),
         axis.line.y = element_blank(),
         panel.grid.minor = element_blank(),
@@ -277,11 +278,11 @@ logo <- logo_raw %>%
 final_plot <- image_append(image_scale(c(logo, plot), "500"), stack = TRUE)
 
 logo_proc <- logo_raw %>% image_scale("100")
-# background_proc <- image_border("white", "600x10")
-# background_proc
 
-# to the left to the left
+# create blank canvas
 a <- image_blank(width = 6, height = 0.8, color = "white")
+
+# combine with logo and shit it to the left, to the left
 b <- image_composite(image_scale(a, "x100"), image_scale(logo_proc, "x60"), 
                      offset = "+500+25")
 logo_2 <- b %>% 
@@ -349,14 +350,15 @@ copa <- one_cup %>%
 
 ```{r}
 # .navigation-not-searchable+ .jquery-tablesorter
+
 acup_url <- "https://en.wikipedia.org/wiki/AFC_Asian_Cup"
 
-acup_winners_raw <- acup_url %>% 
-  read_html() %>% 
+session <- bow(acup_url)
+
+acup_winners_raw <- scrape(session) %>% 
   html_nodes("#mw-content-text > div > table:nth-child(30)") %>% 
   html_table() %>% 
   flatten_df()
-
 ```
 
 ```{r}
@@ -395,7 +397,7 @@ a <- acup_winners_clean %>%
                                 "Third Place" = "#CC6600"),
                      guide = FALSE) +
   labs(x = "Number of Occurrence",
-       title = "Winners & Losers of the Asian Cup!",
+       title = "Winners & Losers of the Asian Cup (1956-2015)",
        subtitle = glue("
                        Ordered by number of Asian Cup(s) won.
                        Four-time Champions, Japan, only won their first in 1992!"),
@@ -417,9 +419,12 @@ a <- acup_winners_clean %>%
         panel.grid.minor.x = element_blank(),
         strip.text = element_text(size = 16))
 
-a +
-  geom_flag(y = -2, aes(image = image), size = 0.15) +
-  expand_limits(y = -2)
+ggsave("../Asian Cup 2019/asiancup_winners.png", width = 8, height = 6)
+
+# a +
+#   geom_flag(data = acup_winners_clean, 
+#             x = -2, aes(image = image), size = 0.15) +
+#   expand_limits(x = -2)
 
 # insert_yaxis_grob()
 
@@ -484,10 +489,115 @@ ymd_hms("2011-07-01 09:00:00", tz = "Pacific/Auckland")
 # Japan vs. RIVALS
 
 - use Kaggle international results
+- results UP TO END OF WORLD CUP
 - filter AFC Asian Cup, Friendly, AFC Asian Cup qualification
 - filter Asia >>> take out UEFA countries like Kazakhstan, Georgia, Israel, etc.
 
-```{r}
 
+- https://www.kaggle.com/phjulien/a-journey-through-the-history-of-soccer/
+
+```{r}
+all_teams <- data.frame(teams = c(df$home_team, df$away_team), year=as.numeric(c(df$year, df$year)))
+
+df_teams_start <- all_teams %>%
+    mutate(year = as.numeric(year)) %>%
+    group_by(teams) %>%
+    summarise(first_game = min(year))
+
+
+federation_files = Sys.glob("../data/federation_affiliations/*")
+
+df_federations = data.frame(country = NULL, federation = NULL)
+for (f in federation_files) {
+    federation = basename(f)
+    content = read.csv(f, header=FALSE)
+    content <- cbind(content,federation=rep(federation, dim(content)[1]))
+    df_federations <- rbind(df_federations, content)
+}
+
+colnames(df_federations) <- c("country", "federation")
+
+df_federations <- df_federations %>% 
+  mutate(country = as.character(country) %>% str_trim(side = "both"))
+```
+
+```{r}
+results_raw <- read_csv("../data/results.csv")
+
+results_japan_raw <- results_raw %>% 
+  filter(home_team == "Japan" | away_team == "Japan") %>% 
+  rename(venue_country = country, 
+         venue_city = city) %>% 
+  mutate(match_num = row_number())
+
+# combine with federation affiliations
+results_japan_home <- results_japan_raw %>% 
+  left_join(df_federations, 
+            by = c("home_team" = "country")) %>% 
+  mutate(federation = as.character(federation)) %>% 
+  rename(home_federation = federation) #%>% 
+  View()
+
+results_japan_away <- results_japan_raw %>% 
+  left_join(df_federations, 
+            by = c("away_team" = "country")) %>% 
+  mutate(federation = as.character(federation)) %>% 
+  rename(away_federation = federation) #%>% 
+  View()
+
+results_japan_cleaned <- results_japan_home %>% 
+  full_join(results_japan_away)
+
+results_japan_cleaned %>% 
+  filter(is.na(home_federation)) %>% 
+  pull(home_team) %>% 
+  unique()
+
+results_japan_cleaned %>% 
+  filter(is.na(away_federation)) %>% 
+  pull(away_team) %>% 
+  unique()
+
+```
+
+
+
+```{r}
+results_japan_cleaned <- results_japan_cleaned %>% 
+  mutate(
+    home_federation = case_when(
+      home_team %in% c(
+        "China", "Manchukuo", "Burma", "Korea Republic", "Vietnam Republic",
+        "Korea DPR", "Brunei") ~ "AFC",
+      home_team == "USA" ~ "Concacaf",
+      home_team == "Bosnia-Herzegovina" ~ "UEFA",
+      TRUE ~ home_federation),
+    away_federation = case_when(
+      away_team %in% c(
+        "China", "Manchukuo", "Burma", "Korea Republic", "Vietnam Republic",
+        "Korea DPR", "Brunei", "Taiwan") ~ "AFC",
+      away_team == "USA" ~ "Concacaf",
+      away_team == "Bosnia-Herzegovina" ~ "UEFA",
+      TRUE ~ away_federation
+    ))
+
+
+results_jp_asia <- results_japan_cleaned %>% 
+  filter(home_team == "Japan" | away_team == "Japan",
+         home_federation == "AFC" & away_federation == "AFC") %>% 
+  select(-contains("federation"), -contains("venue"),
+         -neutral, -match_num,
+         date, home_team, home_score, away_team, away_score, tournament)
+
+
+results_jp_asia %>% 
+  filter(home_team == "Uzbekistan" | away_team == "Uzbekistan")
+
+results_jp_asia %>% 
+  filter(home_team == "Turkmenistan" | away_team == "Turkmenistan")
+
+results_jp_asia %>% 
+  filter(home_team == "Oman" | away_team == "Oman") %>% 
+  knitr::kable()
 ```
 
