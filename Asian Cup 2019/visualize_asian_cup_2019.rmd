@@ -1,0 +1,359 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "January 4, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+Another year, another big soccer/football tournament! This time it's the grand 
+
+## Packages
+
+```{r message=FALSE}
+pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi, magick, gapminder,
+               glue, extrafont, rvest, ggtextures, cowplot, countrycode, ggimage,
+               polite)
+# Roboto Condensed font (from hrbrmstrthemes or just Google it)
+loadfonts()
+```
+
+
+## Top Goalscorers of the Asian Cup
+
+```{r}
+topg_url <- "https://en.wikipedia.org/wiki/AFC_Asian_Cup_records_and_statistics"
+
+session <- bow(topg_url)
+
+ac_top_scorers <- scrape(session) %>%
+  html_nodes("table.wikitable:nth-child(29)") %>% 
+  html_table() %>% 
+  flatten_df() %>% 
+  select(-Ref.) %>% 
+  set_names(c("total_goals", "player", "country"))
+```
+
+For brevity, let's only take a look at the top 5 goal scorers. I'll also `mutate()` in a nice image of a soccer ball for the points on the plot.
+
+```{r}
+ac_top_scorers <- ac_top_scorers %>% 
+  head(5) %>% 
+  mutate(image = "https://www.emoji.co.uk/files/microsoft-emojis/activity-windows10/8356-soccer-ball.png")
+```
+
+Now it's ready to plot! Slightly different to your standard bar graph here due to using the `geom_isotype_col()` function from `ggtextures` to create a bar of soccer ball images. Compared to other functions in ggtextures, geom_isotype_col() allows each image to correspond to the value of the variable you are plotting, in this case 1 ball = 1 goal!
+
+```{r top goal scorers plot, fig.width=8, fig.height=6}
+ac_top_graph <- ac_top_scorers %>% 
+  ggplot(aes(x = reorder(player, total_goals), y = total_goals,
+             image = image)) +
+  geom_isotype_col(img_width = grid::unit(1, "native"), img_height = NULL,
+    ncol = NA, nrow = 1, hjust = 0, vjust = 0.5) +
+  coord_flip() +
+  scale_y_continuous(breaks = c(0, 2, 4, 6, 8, 10, 12, 14),
+                     expand = c(0, 0), 
+                     limits = c(0, 15)) +
+  ggthemes::theme_solarized() +
+  labs(title = "Top Scorers of the Asian Cup",
+       subtitle = "Most goals in a single tournament: 8 (Ali Daei, 1996)",
+       y = "Number of Goals", x = NULL,
+       caption = glue("
+                      Source: Wikipedia
+                      By @R_by_Ryo")) +
+  theme(text = element_text(family = "Roboto Condensed"),
+        plot.title = element_text(size = 22),
+        plot.subtitle = element_text(size = 14),
+        axis.text = element_text(size = 14),
+        axis.title.x = element_text(size = 16),
+        axis.line.y = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(),
+        axis.ticks.y = element_blank())
+
+ac_top_graph
+```
+
+OK, not bad. However, wouldn't it be nice to add a bit more information for context? Specifically, which country these players came from. So let's add some flags along the y-axis!
+
+There are lots of different ways to do this (like `geom_flag()` from `ggimage` package) but I ended up doing it the "cowplot" way. I had to tweak the scales a bit as the flags came in different sizes.
+
+Finally, you insert the image strip into the bar plot and combine all the parts together with `ggdraw()`!
+
+```{r draw_image, fig.width=8, fig.height=6}
+axis_image <- axis_canvas(ac_top_graph, axis = 'y') + 
+  draw_image("https://upload.wikimedia.org/wikipedia/commons/c/ca/Flag_of_Iran.svg", 
+             y = 13, scale = 1.5) +
+  draw_image("https://upload.wikimedia.org/wikipedia/commons/0/09/Flag_of_South_Korea.svg", 
+             y = 10, scale = 1.7) +
+  draw_image("https://upload.wikimedia.org/wikipedia/en/9/9e/Flag_of_Japan.svg", 
+             y = 7, scale = 1.7) +
+  draw_image("https://upload.wikimedia.org/wikipedia/commons/f/f6/Flag_of_Iraq.svg", 
+             y = 4, scale = 1.6) +
+  draw_image("https://upload.wikimedia.org/wikipedia/commons/a/aa/Flag_of_Kuwait.svg", 
+             y = 1, scale = 1.2)
+
+ggdraw(insert_yaxis_grob(ac_top_graph, axis_image, position = "left"))
+```
+
+Ideally I wanted the soccer balls to be the official balls from the tournament that the player scored in. However, I couldn't find a nice emoji-fied/icon-ized version and there was also the small problem in that there was no "official" Asian Cup ball until the 2007 tournament! 
+
+
+## Winners of the Asian Cup
+
+```{r}
+acup_url <- "https://en.wikipedia.org/wiki/AFC_Asian_Cup"
+
+# responsible web-scraping ftw!
+session <- bow(acup_url)
+
+acup_winners_raw <- scrape(session) %>% 
+  html_nodes("#mw-content-text > div > table:nth-child(30)") %>% 
+  html_table() %>% 
+  flatten_df()
+```
+
+
+```{r}
+# clean
+acup_winners_clean <- acup_winners_raw %>% 
+  janitor::clean_names() %>% 
+  slice(1:8) %>% 
+  select(-fourth_place, -total_top_four) %>% 
+  separate(winners, into = c("first_num", "first_place_year"), sep = " ", extra = "merge") %>% 
+  separate(runners_up, into = c("second_num", "second_place_year"), sep = " ", extra = "merge") %>% 
+  separate(third_place, into = c("third_num", "third_place_year"), sep = " ", extra = "merge") %>% 
+  mutate_all(funs(str_replace_all(., "–", "0"))) %>% 
+  mutate_at(vars(contains("num")), funs(as.numeric)) %>% 
+  mutate(team = if_else(team == "Israel1", "Israel", team)) %>% 
+  gather(key = "key", value = "value", -team, 
+         -first_place_year, -second_place_year, -third_place_year) %>% 
+  mutate(key = case_when(
+    key == "first_num" ~ "Champions",
+    key == "second_num" ~ "Runners-up",
+    key == "third_num" ~ "Third Place"
+  ),
+  key = key %>% fct_relevel(c("Champions", "Runners-up", "Third Place"))) %>% 
+  # hack-ish solution?
+  arrange(key, value) %>% 
+  mutate(team = as_factor(team),
+         order = row_number())
+```
+
+
+```{r}
+# PLOT
+acup_winners_clean %>% 
+  ggplot(aes(value, team, color = key)) +
+  geom_point(size = 5) +
+  scale_color_manual(values = c("Champions" = "#FFCC33",
+                                "Runners-up" = "#999999",
+                                "Third Place" = "#CC6600"),
+                     guide = FALSE) +
+  labs(x = "Number of Occurrence",
+       title = "Winners & Losers of the Asian Cup!",
+       subtitle = glue("
+                       Ordered by number of Asian Cup(s) won.
+                       Four-time Champions, Japan, only won their first in 1992!"),
+       caption = glue("
+                      Note: Israel was expelled by the AFC in 1974 while Australia joined the AFC in 2006.
+                      Source: Wikipedia
+                      By @R_by_Ryo")) +
+  facet_wrap(~key) +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 12),
+        axis.title.y = element_blank(),
+        axis.title.x = element_text(size = 12),
+        axis.text.y = element_text(size = 14),
+        axis.text.x = element_text(size = 12),
+        plot.caption = element_text(hjust = 0, size = 10),
+        panel.border = element_rect(fill = NA, colour = "grey20"),
+        panel.grid.minor.x = element_blank(),
+        strip.text = element_text(size = 16)) 
+```
+
+
+## Goals per Game
+
+one new thing i learned very recently, using magrittr aliases! 
+
+![](https://twitter.com/Emil_Hvitfeldt/status/1081080919073542144) pic of Emil Hvitfeldt tweet
+
+usualyl for webscraping i always wind up having to use the `.[]` or `.[[]]` but now I can just use `extract()` or `extract2()` respectively to do the same thing!
+
+```{r GPG base links}
+wiki_url <- "https://en.wikipedia.org"
+session <- bow(wiki_url)
+acup_url <- "https://en.wikipedia.org/wiki/AFC_Asian_Cup"
+session_cup <- bow(acup_url)
+
+cup_links <- scrape(session_cup) %>% 
+  html_nodes("br+ i a") %>% 
+  html_attr("href") %>% 
+  magrittr::extract(-17:-18)
+
+acup_df <- cup_links %>% 
+  as_data_frame() %>% 
+  mutate(cup = str_remove(value, "\\/wiki\\/") %>% str_replace_all("_", " ")) %>% 
+  rename(link = value)
+```
+
+
+
+I could have consolidate the three separate functions into one but some of the scraping and cleaning needed a bit more work then the others.
+
+```{r goal info functions}
+goals_info <- function(x) {
+  goal_info <- scrape(session) %>% 
+    jump_to(x) %>% 
+    html_nodes(".vcalendar") %>% 
+    html_table(header = FALSE) %>% 
+    flatten_df() %>% 
+    spread(key = X1, value = X2) %>% 
+    select(`Goals scored`) %>% 
+    mutate(`Goals scored` = str_remove_all(`Goals scored`, pattern = ".*\\(") %>% 
+             str_extract_all("\\d+\\.*\\d*") %>% as.numeric)
+}
+
+team_num_info <- function(x) {
+  team_num_info <- scrape(session) %>% 
+    jump_to(x) %>% 
+    html_nodes(".vcalendar") %>% 
+    html_table(header = FALSE) %>% 
+    flatten_df() %>% 
+    spread(key = X1, value = X2) %>% 
+    select(`Teams`) %>% 
+    mutate(`Teams` = as.numeric(`Teams`))
+}
+
+match_num_info <- function(x) {
+  match_num_info <- scrape(session) %>% 
+    jump_to(x) %>% 
+    html_nodes(".vcalendar") %>% 
+    html_table(header = FALSE) %>% 
+    flatten_df() %>% 
+    spread(key = X1, value = X2) %>% 
+    janitor::clean_names() %>% 
+    select(matches_played) %>% 
+    mutate(matches_played = as.numeric(matches_played))
+}
+
+# all together:
+goals_data <- acup_df %>% 
+  mutate(goals_per_game = map(acup_df$link, goals_info) %>% unlist,
+         team_num = map(acup_df$link, team_num_info) %>% unlist,
+         match_num = map(acup_df$link, match_num_info) %>% unlist)
+
+```
+
+clean up and add in number of teams that participated in each tournament
+
+```{r clean up}
+ac_goals_df <- goals_data %>% 
+  mutate(label = cup %>% str_extract("[0-9]+") %>% str_replace("..", "'"),
+         team_num = case_when(
+           is.na(team_num) ~ 16,
+           TRUE ~ team_num
+         )) %>% 
+  arrange(cup) %>% 
+  mutate(label = factor(label, label),
+         team_num = c(4, 4, 4, 5, 6, 6, 10, 10, 10, 8, 12, 12, 16, 16, 16, 16))
+```
+
+just your regular line graph but with LOTS of `annotate()` code! This part is really just trial-and-error until you feel you got it juuust right.
+
+
+```{r}
+plot <- ac_goals_df %>% 
+  ggplot(aes(x = label, y = goals_per_game, group = 1)) +
+  geom_line() +
+  scale_y_continuous(limits = c(NA, 5.35),
+                     breaks = c(1.5, 2, 2.5, 3, 3.5, 4, 4.5)) +
+  labs(x = "Tournament (Year)", y = "Goals per Game") +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        #title = element_text(size = 18),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 10)) +
+  annotate(geom = "label", x = "'56", y = 5.23, family = "Roboto Condensed",
+           color = "black", #fill = "grey",
+           label = "Total Number of Games Played:", hjust = 0) +
+  annotate(geom = "text", x = "'60", y = 4.9, 
+           label = "6", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 1, xend = 3, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'68", y = 4.9, 
+           label = "10", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 3.8, xend = 4.2, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'72", y = 4.9, 
+           label = "13", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 4.8, xend = 5.2, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'76", y = 4.9, 
+           label = "10", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 5.8, xend = 6.2, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'84", y = 4.9, 
+           label = "24", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 7, xend = 9, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'92", y = 4.9, 
+           label = "16", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 9.8, xend = 10.2, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = 11.5, y = 4.9, 
+           label = "26", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 11, xend = 12, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = 14.5, y = 4.9, 
+           label = "32", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 13, xend = 16, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = 9, y = 4, family = "Roboto Condensed",
+           label = glue("
+                        Incredibly low amount of goals in Group B
+                        (15 in 10 Games) and in Knock-Out Stages
+                        (4 goals in 4, only one scored in normal time)")) +
+  annotate(geom = "segment", x = 9, xend = 9, y = 1.6, yend = 3.6,
+           color = "red") +
+  ggimage::geom_emoji(aes(image = '26bd'), size = 0.03) 
+
+plot
+```
+
+add the Asian Cup logo!
+
+
+dove ack into my bookmark folders to find []() blog post by daniel hadley
+
+this wasn't my first time using magick apckage but back then it was for animation processing rather than image editing.
+
+```{r}
+logo_raw <- image_read("https://upload.wikimedia.org/wikipedia/en/a/ad/2019_afc_asian_cup_logo.png")
+
+logo_proc <- logo_raw %>% image_scale("100")
+
+# create blank canvas
+a <- image_blank(width = 6, height = 0.8, color = "white")
+# combine with logo image and shift logo to the right
+b <- image_composite(image_scale(a, "x100"), image_scale(logo_proc, "x60"), 
+                     offset = "+500+25")
+# add in the title text
+logo_header <- b %>% 
+  image_annotate(text = glue("Goals per Game throughout the Asian Cup"),
+                 color = "black", size = 18, font = "Roboto Condensed",
+                 location = "+63+50", gravity = "northwest")
+
+# combine it all together!
+final2_plot <- image_append(image_scale(c(logo_header, plot), "500"), stack = TRUE)
+final2_plot
+image_write(final2_plot,
+            paste0(here::here("Asian Cup 2019"), "/gpg_plot_final.png"))
+```
+
+all in all it took a while to tweak the positions of the text and logo image but for my first try it worked well. also compared to daniel hadley's example i needed to have the logo on the right corner so i had to find an alternative way of creating a blank canvas and the placing everything on top of that 
+
+
+
+
+
+## Japan's record vs. Group D opponents

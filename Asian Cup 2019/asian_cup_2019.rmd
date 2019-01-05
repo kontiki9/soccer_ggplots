@@ -497,15 +497,7 @@ ymd_hms("2011-07-01 09:00:00", tz = "Pacific/Auckland")
 - https://www.kaggle.com/phjulien/a-journey-through-the-history-of-soccer/
 
 ```{r}
-all_teams <- data.frame(teams = c(df$home_team, df$away_team), year=as.numeric(c(df$year, df$year)))
-
-df_teams_start <- all_teams %>%
-    mutate(year = as.numeric(year)) %>%
-    group_by(teams) %>%
-    summarise(first_game = min(year))
-
-
-federation_files = Sys.glob("../data/federation_affiliations/*")
+federation_files <- Sys.glob("../data/federation_affiliations/*")
 
 df_federations = data.frame(country = NULL, federation = NULL)
 for (f in federation_files) {
@@ -545,6 +537,7 @@ results_japan_away <- results_japan_raw %>%
   rename(away_federation = federation) #%>% 
   View()
 
+# combine home-away
 results_japan_cleaned <- results_japan_home %>% 
   full_join(results_japan_away)
 
@@ -580,24 +573,60 @@ results_japan_cleaned <- results_japan_cleaned %>%
       away_team == "Bosnia-Herzegovina" ~ "UEFA",
       TRUE ~ away_federation
     ))
+```
 
+Now that it's nice and cleaned up I can reshape it so that the data is set from Japan's perspective.
+
+```{r}
+# reshape to Japan p.o.v.
 
 results_jp_asia <- results_japan_cleaned %>% 
+  # filter only for Japan games and AFC opponents
   filter(home_team == "Japan" | away_team == "Japan",
          home_federation == "AFC" & away_federation == "AFC") %>% 
   select(-contains("federation"), -contains("venue"),
          -neutral, -match_num,
-         date, home_team, home_score, away_team, away_score, tournament)
+         date, home_team, home_score, away_team, away_score, tournament) %>% 
+  # reshape columns to Japan vs. opponent
+  mutate(
+    opponent = case_when(
+      away_team != "Japan" ~ away_team,
+      home_team != "Japan" ~ home_team),
+    home_away = case_when(
+      home_team == "Japan" ~ "home",
+      away_team == "Japan" ~ "away"),
+    japan_goals = case_when(
+      home_team == "Japan" ~ home_score,
+      away_team == "Japan" ~ away_score),
+    opp_goals = case_when(
+      home_team != "Japan" ~ home_score,
+      away_team != "Japan" ~ away_score)) %>% 
+  # results
+  mutate(
+    result = case_when(
+      japan_goals > opp_goals ~ "Win",
+      japan_goals < opp_goals ~ "Loss",
+      japan_goals == opp_goals ~ "Draw"),
+    result = result %>% as_factor() %>% fct_relevel(c("Win", "Draw", "Loss"))) %>% 
+  select(-contains("score"), -contains("team"))
 
+
+results_jp_asia %>% View()
+```
+
+
+
+```{r}
+results_jp_asia %>% 
+  filter(opponent == "Uzbekistan") %>% 
+  group_by(result) %>% 
+  count()
 
 results_jp_asia %>% 
-  filter(home_team == "Uzbekistan" | away_team == "Uzbekistan")
+  filter(opponent == "Turkmenistan")
 
 results_jp_asia %>% 
-  filter(home_team == "Turkmenistan" | away_team == "Turkmenistan")
-
-results_jp_asia %>% 
-  filter(home_team == "Oman" | away_team == "Oman") %>% 
+  filter(opponent == "Oman") %>% 
   knitr::kable()
 ```
 
