@@ -611,7 +611,7 @@ results_jp_asia <- results_japan_cleaned %>%
   select(-contains("score"), -contains("team"))
 
 
-results_jp_asia %>% View()
+#results_jp_asia %>% View()
 ```
 
 
@@ -628,5 +628,48 @@ results_jp_asia %>%
 results_jp_asia %>% 
   filter(opponent == "Oman") %>% 
   knitr::kable()
+
+
+results_jp_asia %>% 
+  filter(opponent %in% c("Oman", "Uzbekistan", "Turkmenistan")) %>% 
+  group_by(result, opponent) %>% 
+  tally()
+
+results_jp_asia %>% 
+  filter(opponent %in% c("Oman", "Uzbekistan", "Turkmenistan")) %>% 
+  group_by(result, opponent) %>% 
+  summarize(j_g = sum(japan_goals),
+            o_g = sum(opp_goals),
+            n = n()) %>% 
+  spread(result, n)
 ```
 
+
+
+```{r}
+results_jp_asia %>% 
+  filter(opponent %in% c("Australia", "Korea Republic", "Iran")) %>% 
+  group_by(result, opponent) %>% 
+  mutate(n = n()) %>% 
+  ungroup() %>% 
+  group_by(result, opponent) %>% 
+  summarize(j_g = sum(sum(japan_goals)),
+            o_g = sum(sum(opp_goals)),
+            n = n()) %>% 
+  ungroup() %>% 
+  spread(result, n) %>% 
+  group_by(opponent) %>% 
+  mutate(j_g = sum(j_g),
+         o_g = sum(o_g),
+         Win = sum(Win, na.rm = TRUE),
+         Draw = sum(Draw, na.rm = TRUE),
+         Loss = sum(Loss, na.rm = TRUE)) %>% 
+  distinct()
+
+```
+
+thankfull south korea should be on the otherside of the bracket and we would also only meet Iran in the semifinals
+
+Japan could meet Australia in the Quarters but without Aaron Mooy they're a much weaker side
+
+Japan have unfortunately lost our rising star, Nakajima, to injury but we have replaced him with World Cup hero Takashi Inui.

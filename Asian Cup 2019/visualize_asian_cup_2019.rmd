@@ -10,20 +10,29 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
-Another year, another big soccer/football tournament! This time it's the grand 
+Another year, another big soccer/football tournament! This time it's the top international competition in Asia, the Asian Cup hosted in the U.A.E. 
+
+I'll be covering (responsible) web-scraping, data wrangling (tidyverse ftw!), and of course, data visualization with `ggplot2`.
+
+Let's get started!
 
 ## Packages
 
 ```{r message=FALSE}
-pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi, magick, gapminder,
-               glue, extrafont, rvest, ggtextures, cowplot, countrycode, ggimage,
-               polite)
+pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi, magick, 
+               glue, extrafont, rvest, ggtextures, cowplot, ggimage, polite)
 # Roboto Condensed font (from hrbrmstrthemes or just Google it)
 loadfonts()
 ```
 
 
 ## Top Goalscorers of the Asian Cup
+
+When you talk about football the most important thing is goals. Goals, goals, and lots of goals. So, the first thing I looked at was who were the top goalscorers in the history of the Asian Cup?
+
+Here I use the [polite](https://github.com/dmi3kno/polite) package to take a look at the `robots.txt` for the web page and see if it is OK to  web scrape. It really shouldn't be an issue for Wikipedia but it's good to make things like this a habit! 
+
+First you pass the URL to the `bow()` function, check that you are indeed allowed to scrape, then use `scrape()` to retrieve data, and the rest is the usual `rvest` web-scraping workflow.
 
 ```{r}
 topg_url <- "https://en.wikipedia.org/wiki/AFC_Asian_Cup_records_and_statistics"
@@ -38,7 +47,7 @@ ac_top_scorers <- scrape(session) %>%
   set_names(c("total_goals", "player", "country"))
 ```
 
-For brevity, let's only take a look at the top 5 goal scorers. I'll also `mutate()` in a nice image of a soccer ball for the points on the plot.
+For brevity, let's only take a look at the top 5 goal scorers. I'll also `mutate()` in a nice image of a soccer ball for the data points on the plot.
 
 ```{r}
 ac_top_scorers <- ac_top_scorers %>% 
@@ -46,7 +55,7 @@ ac_top_scorers <- ac_top_scorers %>%
   mutate(image = "https://www.emoji.co.uk/files/microsoft-emojis/activity-windows10/8356-soccer-ball.png")
 ```
 
-Now it's ready to plot! Slightly different to your standard bar graph here due to using the `geom_isotype_col()` function from `ggtextures` to create a bar of soccer ball images. Compared to other functions in ggtextures, geom_isotype_col() allows each image to correspond to the value of the variable you are plotting, in this case 1 ball = 1 goal!
+Now it's ready! Slightly different to your standard bar graph here due to using the `geom_isotype_col()` function from `ggtextures` to create a bar of soccer ball images. Compared to other functions in ggtextures, `geom_isotype_col()` allows each image to correspond to the value of the variable you are plotting, in this case 1 ball = 1 goal!
 
 ```{r top goal scorers plot, fig.width=8, fig.height=6}
 ac_top_graph <- ac_top_scorers %>% 
@@ -100,23 +109,35 @@ axis_image <- axis_canvas(ac_top_graph, axis = 'y') +
 ggdraw(insert_yaxis_grob(ac_top_graph, axis_image, position = "left"))
 ```
 
-Ideally I wanted the soccer balls to be the official balls from the tournament that the player scored in. However, I couldn't find a nice emoji-fied/icon-ized version and there was also the small problem in that there was no "official" Asian Cup ball until the 2007 tournament! 
+Ideally I wanted the soccer balls to be the official balls from the tournament that the player scored in. However, I couldn't find a nice emoji-fied/icon-ized version and there was also the "small" problem in that there was no "official" Asian Cup ball until the 2007 tournament! 
+
+You can take a look at the official Asian Cup balls [here]().
 
 
 ## Winners of the Asian Cup
 
+We saw that the top goal scorers came from Iran, South Korea, Japan, Iraq, and Kuwait but did their goal scoring exploits lead their nations to glory? Let's find out!
+
+I really like using `flatten_df()` after `html_table()` as I don't have to use the awkward looking `.[[1]]` within my piped workflow.
+
 ```{r}
 acup_url <- "https://en.wikipedia.org/wiki/AFC_Asian_Cup"
 
-# responsible web-scraping ftw!
 session <- bow(acup_url)
 
 acup_winners_raw <- scrape(session) %>% 
-  html_nodes("#mw-content-text > div > table:nth-child(30)") %>% 
+  html_nodes("table:nth-child(31)") %>% 
   html_table() %>% 
   flatten_df()
 ```
 
+Now I can use the `clean_names()` function to quickly clean up my names (mainly when I can't be bothered to `set_names()` them myself...).
+
+The next steps are splitting up the number of times a team placed between 1st and 3rd and the year that occured with `separate()`. 
+
+The variants of `mutate()` are then used to tidy the string columns of the data into numeric.
+
+I `gather()` the number of times a team placed 1st-3rd into a single column so each team will have a row for each of the rank positions. 
 
 ```{r}
 # clean
