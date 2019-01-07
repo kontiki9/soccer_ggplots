@@ -137,7 +137,9 @@ The next steps are splitting up the number of times a team placed between 1st an
 
 The variants of `mutate()` are then used to tidy the string columns of the data into numeric.
 
-I `gather()` the number of times a team placed 1st-3rd into a single column so each team will have a row for each of the rank positions. 
+I use `gather()` so each team will have a row for each of the rank positions (1st-3rd). 
+
+Finally I arrange the data in a way that the facets will be ordered in the way that I want.
 
 ```{r}
 # clean
@@ -145,26 +147,24 @@ acup_winners_clean <- acup_winners_raw %>%
   janitor::clean_names() %>% 
   slice(1:8) %>% 
   select(-fourth_place, -total_top_four) %>% 
-  separate(winners, into = c("first_num", "first_place_year"), sep = " ", extra = "merge") %>% 
-  separate(runners_up, into = c("second_num", "second_place_year"), sep = " ", extra = "merge") %>% 
-  separate(third_place, into = c("third_num", "third_place_year"), sep = " ", extra = "merge") %>% 
+  separate(winners, into = c("Champions", "first_place_year"), sep = " ", extra = "merge") %>% 
+  separate(runners_up, into = c("Runners-up", "second_place_year"), sep = " ", extra = "merge") %>% 
+  separate(third_place, into = c("Third Place", "third_place_year"), sep = " ", extra = "merge") %>% 
   mutate_all(funs(str_replace_all(., "–", "0"))) %>% 
   mutate_at(vars(contains("num")), funs(as.numeric)) %>% 
   mutate(team = if_else(team == "Israel1", "Israel", team)) %>% 
   gather(key = "key", value = "value", -team, 
          -first_place_year, -second_place_year, -third_place_year) %>% 
-  mutate(key = case_when(
-    key == "first_num" ~ "Champions",
-    key == "second_num" ~ "Runners-up",
-    key == "third_num" ~ "Third Place"
-  ),
-  key = key %>% fct_relevel(c("Champions", "Runners-up", "Third Place"))) %>% 
-  # hack-ish solution?
+  mutate(key = key %>% 
+           fct_relevel(c("Champions", "Runners-up", "Third Place"))) %>% 
   arrange(key, value) %>% 
   mutate(team = as_factor(team),
          order = row_number())
+
+acup_winners_clean %>% knitr::kable()
 ```
 
+I plot using facets on the "key" variable (containing the rank data) so that we can see how many times placed as Champions to Third Place. I also use the `glue()` function here to format the multi-line captions and titles in a neat way.
 
 ```{r}
 # PLOT
@@ -199,14 +199,19 @@ acup_winners_clean %>%
         strip.text = element_text(size = 16)) 
 ```
 
+It would have been nice to include the respective years that these teams ranked 
 
 ## Goals per Game
+
+For this graph I wanted to see whether there were 
+
+
 
 one new thing i learned very recently, using magrittr aliases! 
 
 ![](https://twitter.com/Emil_Hvitfeldt/status/1081080919073542144) pic of Emil Hvitfeldt tweet
 
-usualyl for webscraping i always wind up having to use the `.[]` or `.[[]]` but now I can just use `extract()` or `extract2()` respectively to do the same thing!
+usualyl for webscraping i always wind up having to use the `.[x]` or `.[[x]]` but now I can just use `extract()` or `extract2()` respectively to do the same thing!
 
 ```{r GPG base links}
 wiki_url <- "https://en.wikipedia.org"
@@ -225,9 +230,7 @@ acup_df <- cup_links %>%
   rename(link = value)
 ```
 
-
-
-I could have consolidate the three separate functions into one but some of the scraping and cleaning needed a bit more work then the others.
+The cool thing I found while trying to scrape this data was the `jump_to()` function that allows you to navigate to a new URL. This makes `map()`-ing over multiple URL links from a base URL very easy! Here, the base URL is the AFC Asian Cup Wikipedia page and the function iterates over each of the links to the URL of the respective tournament pages. Another way that I could've done this was to `map()` over the different dates of the tournaments as the Wikipedia page of each edition of the Asian Cup only differend in the "year" appended at the beginning of the URL. I could have consolidated the three separate functions into one but some needed a bit more work than the others.
 
 ```{r goal info functions}
 goals_info <- function(x) {
@@ -273,7 +276,7 @@ goals_data <- acup_df %>%
 
 ```
 
-clean up and add in number of teams that participated in each tournament
+No to clean it up a bit and add in the number of teams that participated in each tournament.
 
 ```{r clean up}
 ac_goals_df <- goals_data %>% 
@@ -287,8 +290,7 @@ ac_goals_df <- goals_data %>%
          team_num = c(4, 4, 4, 5, 6, 6, 10, 10, 10, 8, 12, 12, 16, 16, 16, 16))
 ```
 
-just your regular line graph but with LOTS of `annotate()` code! This part is really just trial-and-error until you feel you got it juuust right.
-
+Now we make a line graph but with LOTS of `annotate()` code! 
 
 ```{r}
 plot <- ac_goals_df %>% 
@@ -341,12 +343,9 @@ plot <- ac_goals_df %>%
 plot
 ```
 
-add the Asian Cup logo!
+I wanted to try to make this look a bit more "official" so I attempted to add the Asian Cup logo on the top right corner. There probably are alternative ways to how I did it below, especially by using grobs but I was reminded of [this]() blog post by Daniel Hadley who used the `magick` package to add a footer with a logo onto a ggplot object. 
 
-
-dove ack into my bookmark folders to find []() blog post by daniel hadley
-
-this wasn't my first time using magick apckage but back then it was for animation processing rather than image editing.
+I've used magick before for animations but this was a good chance to try it out for image editing.
 
 ```{r}
 logo_raw <- image_read("https://upload.wikimedia.org/wikipedia/en/a/ad/2019_afc_asian_cup_logo.png")
@@ -371,10 +370,208 @@ image_write(final2_plot,
             paste0(here::here("Asian Cup 2019"), "/gpg_plot_final.png"))
 ```
 
-all in all it took a while to tweak the positions of the text and logo image but for my first try it worked well. also compared to daniel hadley's example i needed to have the logo on the right corner so i had to find an alternative way of creating a blank canvas and the placing everything on top of that 
+all in all it took a while to tweak the positions of the text and logo image but for my first try it worked well. also compared to daniel hadley's example i needed to have the logo on the right corner so i had to find an alternative way of creating a blank canvas with `image_blank()` and the placing everything on top of that with `image_composite()` and `image_append()`
+
+
+Ultimately, I couldn't find much information on why those tournaments in the 80s in particular were such low scoring affairs. I wasn't alive to watch those games on TV nor could I have any illuminating articles or blog posts on the style of Asian football back in the 80s 
+
+
+## Japan's record vs. Group D opponents and rivals
+
+Japan is the most successful team in the competition with 4 championships but who are their opponents in the group stages and how have they fared against them
+
+In the meanwhile we can also check their reocrds against long-time continental rivals such as Iran, South Korea, Saudi Arabia and more recently, Australia.
 
 
 
 
+- use Kaggle international results
+- results UP TO END OF WORLD CUP
+- filter AFC Asian Cup, Friendly, AFC Asian Cup qualification
+- filter Asia >>> take out UEFA countries like Kazakhstan, Georgia, Israel, etc.
 
-## Japan's record vs. Group D opponents
+
+- https://www.kaggle.com/phjulien/a-journey-through-the-history-of-soccer/
+
+```{r}
+federation_files <- Sys.glob("../data/federation_affiliations/*")
+
+df_federations = data.frame(country = NULL, federation = NULL)
+for (f in federation_files) {
+    federation = basename(f)
+    content = read.csv(f, header=FALSE)
+    content <- cbind(content,federation=rep(federation, dim(content)[1]))
+    df_federations <- rbind(df_federations, content)
+}
+
+colnames(df_federations) <- c("country", "federation")
+
+df_federations <- df_federations %>% 
+  mutate(country = as.character(country) %>% str_trim(side = "both"))
+
+results_raw <- read_csv("../data/results.csv")
+
+results_japan_raw <- results_raw %>% 
+  filter(home_team == "Japan" | away_team == "Japan") %>% 
+  rename(venue_country = country, 
+         venue_city = city) %>% 
+  mutate(match_num = row_number())
+
+# combine with federation affiliations
+results_japan_home <- results_japan_raw %>% 
+  left_join(df_federations, 
+            by = c("home_team" = "country")) %>% 
+  mutate(federation = as.character(federation)) %>% 
+  rename(home_federation = federation) 
+
+results_japan_away <- results_japan_raw %>% 
+  left_join(df_federations, 
+            by = c("away_team" = "country")) %>% 
+  mutate(federation = as.character(federation)) %>% 
+  rename(away_federation = federation)
+
+# combine home-away
+results_japan_cleaned <- results_japan_home %>% 
+  full_join(results_japan_away)
+```
+
+Next I need to edit some of the continents for teams that didn't have a match in the federation afiliation data set, for example, "South Korea" is "Korea Republic" in the Kaggle data set.
+
+```{r}
+results_japan_cleaned <- results_japan_cleaned %>% 
+  mutate(
+    home_federation = case_when(
+      home_team %in% c(
+        "China", "Manchukuo", "Burma", "Korea Republic", "Vietnam Republic",
+        "Korea DPR", "Brunei") ~ "AFC",
+      home_team == "USA" ~ "Concacaf",
+      home_team == "Bosnia-Herzegovina" ~ "UEFA",
+      TRUE ~ home_federation),
+    away_federation = case_when(
+      away_team %in% c(
+        "China", "Manchukuo", "Burma", "Korea Republic", "Vietnam Republic",
+        "Korea DPR", "Brunei", "Taiwan") ~ "AFC",
+      away_team == "USA" ~ "Concacaf",
+      away_team == "Bosnia-Herzegovina" ~ "UEFA",
+      TRUE ~ away_federation
+    ))
+```
+
+Now that it's nice and cleaned up I can reshape it so that the data is set from Japan's perspective.
+
+```{r}
+results_jp_asia <- results_japan_cleaned %>% 
+  # filter only for Japan games and AFC opponents
+  filter(home_team == "Japan" | away_team == "Japan",
+         home_federation == "AFC" & away_federation == "AFC") %>% 
+  select(-contains("federation"), -contains("venue"),
+         -neutral, -match_num,
+         date, home_team, home_score, away_team, away_score, tournament) %>% 
+  # reshape columns to Japan vs. opponent
+  mutate(
+    opponent = case_when(
+      away_team != "Japan" ~ away_team,
+      home_team != "Japan" ~ home_team),
+    home_away = case_when(
+      home_team == "Japan" ~ "home",
+      away_team == "Japan" ~ "away"),
+    japan_goals = case_when(
+      home_team == "Japan" ~ home_score,
+      away_team == "Japan" ~ away_score),
+    opp_goals = case_when(
+      home_team != "Japan" ~ home_score,
+      away_team != "Japan" ~ away_score)) %>% 
+  # results
+  mutate(
+    result = case_when(
+      japan_goals > opp_goals ~ "Win",
+      japan_goals < opp_goals ~ "Loss",
+      japan_goals == opp_goals ~ "Draw"),
+    result = result %>% as_factor() %>% fct_relevel(c("Win", "Draw", "Loss"))) %>% 
+  select(-contains("score"), -contains("team"))
+```
+
+
+
+```{r}
+results_jp_asia %>% 
+  filter(opponent == "Uzbekistan") %>% 
+  group_by(result) %>% 
+  count()
+
+results_jp_asia %>% 
+  filter(opponent == "Turkmenistan")
+
+results_jp_asia %>% 
+  filter(opponent == "Oman") %>% 
+  knitr::kable()
+
+
+results_jp_asia %>% 
+  filter(opponent %in% c("Oman", "Uzbekistan", "Turkmenistan")) %>% 
+  group_by(result, opponent) %>% 
+  tally()
+
+results_jp_asia %>% 
+  filter(opponent %in% c("Oman", "Uzbekistan", "Turkmenistan")) %>% 
+  group_by(result, opponent) %>% 
+  summarize(j_g = sum(japan_goals),
+            o_g = sum(opp_goals),
+            n = n()) %>% 
+  spread(result, n)
+```
+
+I can create a function that'll filter for any opponents I might want to take a look at 
+
+```{r}
+
+```
+
+
+
+```{r}
+results_jp_asia %>% 
+  filter(opponent %in% c("Australia", "Korea Republic", "Iran")) %>% 
+  group_by(result, opponent) %>% 
+  mutate(n = n()) %>% 
+  ungroup() %>% 
+  group_by(result, opponent) %>% 
+  summarize(j_g = sum(sum(japan_goals)),
+            o_g = sum(sum(opp_goals)),
+            n = n()) %>% 
+  ungroup() %>% 
+  spread(result, n) %>% 
+  group_by(opponent) %>% 
+  mutate(j_g = sum(j_g),
+         o_g = sum(o_g),
+         Win = sum(Win, na.rm = TRUE),
+         Draw = sum(Draw, na.rm = TRUE),
+         Loss = sum(Loss, na.rm = TRUE)) %>% 
+  distinct()
+
+```
+
+thankfull south korea should be on the otherside of the bracket and we would also only meet Iran in the semifinals
+
+Japan could meet Australia in the Quarters but without Aaron Mooy they're a much weaker side
+
+Japan have unfortunately lost our rising star, Nakajima, to injury but we have replaced him with World Cup hero Takashi Inui.
+
+I'm going to use this opportunity to try out the new `gt` package. 
+
+```{r}
+
+```
+
+
+
+
+# Conclusion
+
+Japan 
+
+South Korea and Iran
+
+while Austalia is a very different team without Aaaron Mooy as shown in their abject loss to Jordan in their opening match.
+
+even with losing new star Nakajima, the fact that we can replace him with a player of the calibre of Takashi Inui shows how much Japanese football has progressed these past 25 years
