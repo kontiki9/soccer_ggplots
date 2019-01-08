@@ -290,7 +290,7 @@ ac_goals_df <- goals_data %>%
          team_num = c(4, 4, 4, 5, 6, 6, 10, 10, 10, 8, 12, 12, 16, 16, 16, 16))
 ```
 
-Now we make a line graph but with LOTS of `annotate()` code! 
+Now we make a line graph but with LOTS of `annotate()` code to add in comments, labels, and segments for the label. At the end I use `geom_emoji()` to add a soccer ball to the plot for each of the data points.
 
 ```{r}
 plot <- ac_goals_df %>% 
@@ -343,9 +343,7 @@ plot <- ac_goals_df %>%
 plot
 ```
 
-I wanted to try to make this look a bit more "official" so I attempted to add the Asian Cup logo on the top right corner. There probably are alternative ways to how I did it below, especially by using grobs but I was reminded of [this]() blog post by Daniel Hadley who used the `magick` package to add a footer with a logo onto a ggplot object. 
-
-I've used magick before for animations but this was a good chance to try it out for image editing.
+However, I'm not finished yet! I wanted to try to make this look a bit more "official" so I attempted to add the Asian Cup logo on the top right corner. There are probably alternative ways to how I did it below, especially by using grobs, but I was reminded of [this]() blog post by Daniel Hadley who used the `magick` package to add a footer with a logo onto a ggplot object. I've used magick before for animations but this was a good chance to try it out for image editing.
 
 ```{r}
 logo_raw <- image_read("https://upload.wikimedia.org/wikipedia/en/a/ad/2019_afc_asian_cup_logo.png")
@@ -372,8 +370,7 @@ image_write(final2_plot,
 
 all in all it took a while to tweak the positions of the text and logo image but for my first try it worked well. also compared to daniel hadley's example i needed to have the logo on the right corner so i had to find an alternative way of creating a blank canvas with `image_blank()` and the placing everything on top of that with `image_composite()` and `image_append()`
 
-
-Ultimately, I couldn't find much information on why those tournaments in the 80s in particular were such low scoring affairs. I wasn't alive to watch those games on TV nor could I have any illuminating articles or blog posts on the style of Asian football back in the 80s 
+Ultimately, I couldn't find much information on why those tournaments in the 80s in particular were such low scoring affairs. I wasn't alive to watch those games on TV nor could I have any illuminating articles or blog posts on the style of Asian football back in the 80s...This was also before Japan really got into soccer so there wasn't anything I could find in Japanese either.
 
 
 ## Japan's record vs. Group D opponents and rivals
@@ -381,8 +378,6 @@ Ultimately, I couldn't find much information on why those tournaments in the 80s
 Japan is the most successful team in the competition with 4 championships but who are their opponents in the group stages and how have they fared against them
 
 In the meanwhile we can also check their reocrds against long-time continental rivals such as Iran, South Korea, Saudi Arabia and more recently, Australia.
-
-
 
 
 - use Kaggle international results
@@ -408,7 +403,11 @@ colnames(df_federations) <- c("country", "federation")
 
 df_federations <- df_federations %>% 
   mutate(country = as.character(country) %>% str_trim(side = "both"))
+```
 
+Now to load the results data and then join it with the affiliations data created by PH Julien.
+
+```{r}
 results_raw <- read_csv("../data/results.csv")
 
 results_japan_raw <- results_raw %>% 
@@ -481,7 +480,7 @@ results_jp_asia <- results_japan_cleaned %>%
     opp_goals = case_when(
       home_team != "Japan" ~ home_score,
       away_team != "Japan" ~ away_score)) %>% 
-  # results
+  # label results from Japan's perspective
   mutate(
     result = case_when(
       japan_goals > opp_goals ~ "Win",
@@ -491,7 +490,7 @@ results_jp_asia <- results_japan_cleaned %>%
   select(-contains("score"), -contains("team"))
 ```
 
-
+With all that done we can take a look at how Japan have done against certain opponents by using `filter()`.
 
 ```{r}
 results_jp_asia %>% 
@@ -524,7 +523,9 @@ results_jp_asia %>%
 I can create a function that'll filter for any opponents I might want to take a look at 
 
 ```{r}
-
+japan_versus <- function() {
+  
+}
 ```
 
 
@@ -536,26 +537,18 @@ results_jp_asia %>%
   mutate(n = n()) %>% 
   ungroup() %>% 
   group_by(result, opponent) %>% 
-  summarize(j_g = sum(sum(japan_goals)),
-            o_g = sum(sum(opp_goals)),
+  summarize(j_g = sum(japan_goals),
+            o_g = sum(opp_goals),
             n = n()) %>% 
   ungroup() %>% 
   spread(result, n) %>% 
   group_by(opponent) %>% 
-  mutate(j_g = sum(j_g),
-         o_g = sum(o_g),
-         Win = sum(Win, na.rm = TRUE),
+  summarize(Win = sum(Win, na.rm = TRUE),
          Draw = sum(Draw, na.rm = TRUE),
-         Loss = sum(Loss, na.rm = TRUE)) %>% 
-  distinct()
-
+         Loss = sum(Loss, na.rm = TRUE),
+         j_g = sum(j_g),
+         o_g = sum(o_g))
 ```
-
-thankfull south korea should be on the otherside of the bracket and we would also only meet Iran in the semifinals
-
-Japan could meet Australia in the Quarters but without Aaron Mooy they're a much weaker side
-
-Japan have unfortunately lost our rising star, Nakajima, to injury but we have replaced him with World Cup hero Takashi Inui.
 
 I'm going to use this opportunity to try out the new `gt` package. 
 
@@ -566,12 +559,21 @@ I'm going to use this opportunity to try out the new `gt` package.
 
 
 
+
+
+
 # Conclusion
 
 Japan 
 
 South Korea and Iran
 
-while Austalia is a very different team without Aaaron Mooy as shown in their abject loss to Jordan in their opening match.
+thankfull south korea should be on the other side of the bracket and we would also only meet Iran in the semifinals (provided both teams finish top of their respective groups)
+
+Japan could meet Australia in the Quarters but without Aaron Mooy they're a much weaker side as shown in their abject loss to Jordan in their opening match.
 
 even with losing new star Nakajima, the fact that we can replace him with a player of the calibre of Takashi Inui shows how much Japanese football has progressed these past 25 years
+
+it's a changing of the guard for Japan but we've got quality players in Europe as well as some depth too with more young Japanese players headed to Europe from a young age
+
+this tournament should be a first stepping stone for this new generation of players to make a big impact for the next world cup in 2022 so keep your eye out for this bunch of players!
