@@ -494,6 +494,12 @@ With all that done we can take a look at how Japan have done against certain opp
 
 ```{r}
 results_jp_asia %>% 
+  filter(opponent == "Turkmenistan")
+```
+
+
+```{r}
+results_jp_asia %>% 
   filter(opponent == "Uzbekistan") %>% 
   group_by(result) %>% 
   count()
@@ -522,32 +528,96 @@ results_jp_asia %>%
 
 I can create a function that'll filter for any opponents I might want to take a look at 
 
+With the second argument being `...`, `tidyeval` allows me to input any kind of filter condition for an opponent. The `if else` statement protects against cases where Japan never had that type of result against an opponent and makes sure that a column is created populated by 0.
+
 ```{r}
-japan_versus <- function() {
+japan_versus <- function(data, ...) {
   
+  # filter 
+  filter_vars <- enquos(...)
+  
+  jp_vs <- data %>% 
+    filter(!!!filter_vars) %>% 
+    # count results type per opponent
+    group_by(result, opponent) %>% 
+    mutate(n = n()) %>% 
+    ungroup() %>% 
+    # sum amount of goals by Japan and opponent
+    group_by(result, opponent) %>% 
+    summarize(j_g = sum(japan_goals),
+              o_g = sum(opp_goals),
+              n = n()) %>% 
+    ungroup() %>% 
+    # spread results over multiple columns
+    spread(result, n) %>% 
+    # 1. failsafe against no type of result against an opponent
+    # 2. sum up counts per opponent
+    group_by(opponent) %>% 
+    mutate(Win = if("Win" %in% names(.)){return(Win)} else{return(0)},
+         Draw = if("Draw" %in% names(.)){return(Draw)} else{return(0)},
+         Loss = if("Loss" %in% names(.)){return(Loss)} else{return(0)}) %>% 
+    summarize(Win = sum(Win, na.rm = TRUE),
+              Draw = sum(Draw, na.rm = TRUE),
+              Loss = sum(Loss, na.rm = TRUE),
+              j_g = sum(j_g),
+              o_g = sum(o_g))
+  return(jp_vs)
 }
 ```
 
 
 
 ```{r}
+japan_versus(data = results_jp_asia, 
+             opponent == "China")
+
+japan_versus(data = results_jp_asia,
+             opponent %in% c("Oman", "Vietnam", "India"))
+
 results_jp_asia %>% 
-  filter(opponent %in% c("Australia", "Korea Republic", "Iran")) %>% 
+  japan_versus(opponent %in% c("Iraq", "Uzbekistan"))
+
+```
+
+
+```{r}
+results_jp_asia %>% 
+  filter(opponent %in% c("Oman", "Vietnam", "India")) %>% 
   group_by(result, opponent) %>% 
   mutate(n = n()) %>% 
   ungroup() %>% 
-  group_by(result, opponent) %>% 
-  summarize(j_g = sum(japan_goals),
-            o_g = sum(opp_goals),
-            n = n()) %>% 
+  group_by(home_away, result, opponent) %>% 
+  summarize(j_goals = sum(japan_goals),
+         oppo_goals = sum(opp_goals),
+         n = n()) %>% 
   ungroup() %>% 
+  arrange(opponent, result) %>% 
   spread(result, n) %>% 
-  group_by(opponent) %>% 
+  group_by(opponent, home_away) %>% 
+  mutate(Win = if("Win" %in% names(.)){return(Win)} else{return(0)},
+         Draw = if("Draw" %in% names(.)){return(Draw)} else{return(0)},
+         Loss = if("Loss" %in% names(.)){return(Loss)} else{return(0)}) %>% 
   summarize(Win = sum(Win, na.rm = TRUE),
          Draw = sum(Draw, na.rm = TRUE),
          Loss = sum(Loss, na.rm = TRUE),
-         j_g = sum(j_g),
-         o_g = sum(o_g))
+         j_goals = sum(j_goals),
+         o_goals = sum(oppo_goals)) %>% 
+  ungroup() %>% 
+  group_by(opponent) %>% 
+  do(add_row(.,
+             opponent = .$opponent %>% unique(),
+             home_away = "total",
+             Win = sum(.$Win, na.rm = TRUE),
+             Draw = sum(.$Draw, na.rm = TRUE),
+             Loss = sum(.$Loss, na.rm = TRUE),
+             j_goals = sum(.$j_goals),
+             o_goals = sum(.$o_goals)))
+```
+
+
+
+```{r}
+
 ```
 
 I'm going to use this opportunity to try out the new `gt` package. 
