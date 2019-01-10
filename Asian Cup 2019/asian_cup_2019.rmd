@@ -673,3 +673,37 @@ thankfull south korea should be on the otherside of the bracket and we would als
 Japan could meet Australia in the Quarters but without Aaron Mooy they're a much weaker side
 
 Japan have unfortunately lost our rising star, Nakajima, to injury but we have replaced him with World Cup hero Takashi Inui.
+
+```{r, echo=FALSE}
+results_jp_asia %>% 
+  filter(opponent %in% c("Oman", "Vietnam", "India")) %>% 
+  group_by(result, opponent) %>% 
+  mutate(n = n()) %>% 
+  ungroup() %>% 
+  group_by(home_away, result, opponent) %>% 
+  summarize(j_goals = sum(japan_goals),
+         oppo_goals = sum(opp_goals),
+         n = n()) %>% 
+  ungroup() %>% 
+  arrange(opponent, result) %>% 
+  spread(result, n) %>% 
+  group_by(opponent, home_away) %>% 
+  mutate(Win = if("Win" %in% names(.)){return(Win)} else{return(0)},
+         Draw = if("Draw" %in% names(.)){return(Draw)} else{return(0)},
+         Loss = if("Loss" %in% names(.)){return(Loss)} else{return(0)}) %>% 
+  summarize(Win = sum(Win, na.rm = TRUE),
+         Draw = sum(Draw, na.rm = TRUE),
+         Loss = sum(Loss, na.rm = TRUE),
+         j_goals = sum(j_goals),
+         o_goals = sum(oppo_goals)) %>% 
+  ungroup() %>% 
+  group_by(opponent) %>% 
+  do(add_row(.,
+             opponent = .$opponent %>% unique(),
+             home_away = "total",
+             Win = sum(.$Win, na.rm = TRUE),
+             Draw = sum(.$Draw, na.rm = TRUE),
+             Loss = sum(.$Loss, na.rm = TRUE),
+             j_goals = sum(.$j_goals),
+             o_goals = sum(.$o_goals)))
+```
