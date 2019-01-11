@@ -1,14 +1,15 @@
 ---
 title: "Untitled"
 author: "RN7"
-date: "January 4, 2019"
-output: html_document
+always_allow_html: yes
+output: 
+  md_document:
+    variant: markdown_github
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
 
 Another year, another big soccer/football tournament! This time it's the top international competition in Asia, the Asian Cup hosted in the U.A.E. I'll be covering (responsible) web-scraping, data wrangling (tidyverse ftw!), and of course, data visualization with `ggplot2`.
 
@@ -22,7 +23,6 @@ pacman::p_load(tidyverse, scales, lubridate, ggrepel, stringi, magick,
 # Roboto Condensed font (from hrbrmstrthemes or just Google it)
 loadfonts()
 ```
-
 
 ## Top Goalscorers of the Asian Cup
 
@@ -89,7 +89,7 @@ OK, not bad. However, wouldn't it be nice to add a bit more information for cont
 
 There are lots of different ways to do this (like `geom_flag()` from the `ggimage` package) but I ended up doing it the `cowplot` way. I had to tweak the scales a bit as the flags came in different sizes. When you plot, you just insert the image strip into the bar plot with `axis_canvas()` and combine all the parts together with `ggdraw()`!
 
-```{r draw_image, fig.width=8, fig.height=6}
+```{r draw_image, fig.width=8, fig.height=6, fig.align='center'}
 axis_image <- axis_canvas(ac_top_graph, axis = 'y') + 
   draw_image("https://upload.wikimedia.org/wikipedia/commons/c/ca/Flag_of_Iran.svg", 
              y = 13, scale = 1.5) +
@@ -126,7 +126,7 @@ acup_winners_raw <- scrape(session) %>%
 
 Now I can use the `clean_names()` function to quickly clean up my names (mainly when I can't be bothered to `set_names()` them myself...).
 
-The next steps are splitting up the number of times a team placed between 1st and 3rd and the year that occured with `separate()`. 
+The next steps are splitting up the number of times a team placed between 1st and 3rd and the year that occurred with `separate()`. 
 
 The variants of `mutate()` are then used to tidy the string columns of the data into numeric type.
 
@@ -134,12 +134,11 @@ I use `gather()` so each team will have a row for each of the rank positions (1s
 
 Finally, I arrange the data in a way that the facets will be ordered in the way that I want.
 
-```{r}
-# clean
+```{r clean winners df, warning=FALSE}
 acup_winners_clean <- acup_winners_raw %>% 
   janitor::clean_names() %>% 
   slice(1:8) %>% 
-  select(-fourth_place, -total_top_four) %>% 
+  select(-fourth_place, -semi_finalists, -total_top_four) %>% 
   separate(winners, into = c("Champions", "first_place_year"), 
            sep = " ", extra = "merge") %>% 
   separate(runners_up, into = c("Runners-up", "second_place_year"), 
@@ -160,8 +159,7 @@ acup_winners_clean <- acup_winners_raw %>%
 
 I plot using facets on the "key" variable (containing the rank data) so that we can see how many times each team placed as Champions to Third Place. I also use the `glue()` function here to format the multi-line captions and titles in a neat way.
 
-```{r, fig.width=8, fig.height=6}
-# PLOT
+```{r, fig.width=8, fig.height=6, fig.align='center'}
 acup_winners_clean %>% 
   ggplot(aes(value, team, color = key)) +
   geom_point(size = 5) +
@@ -199,7 +197,7 @@ One new thing I learned very recently, while working on this viz in fact, was us
 
 ![](https://twitter.com/Emil_Hvitfeldt/status/1081080919073542144) 
 
-Usually for webscraping I always wind up having to use `.[x]` or `.[[x]]` but now I can just use `extract()` or `extract2()` respectively to do the same thing!
+Usually for web scraping I always wind up having to use `.[x]` or `.[[x]]` but now I can just use `extract()` or `extract2()` respectively to do the same thing!
 
 ```{r GPG base links}
 wiki_url <- "https://en.wikipedia.org"
@@ -220,7 +218,7 @@ acup_df <- cup_links %>%
 
 Another cool thing I found while scraping this data was the `jump_to()` function that allows you to navigate to a new URL. This makes `map()`-ing over multiple URL links from a base URL very easy! Here, the base URL is the AFC Asian Cup Wikipedia page and the function iterates over each of the links to the URL of the respective tournament pages. Another way that I could've done this was to `map()` over the different dates of the tournaments as the Wikipedia page of each edition of the Asian Cup only differed in the "year" appended at the beginning of the URL. 
 
-```{r goal info functions}
+```{r goal info functions, warning=FALSE}
 goals_info <- function(x) {
   goal_info <- session %>% 
     jump_to(x) %>% 
@@ -281,7 +279,7 @@ glimpse(ac_goals_df)
 
 Now we make a line graph but with LOTS of `annotate()` code to add in comments, labels, and segments for the labels. At the end I use `geom_emoji()` to add a soccer ball to the plot for each of the data points.
 
-```{r, fig.width=8, fig.height=6}
+```{r, fig.align='center'}
 plot <- ac_goals_df %>% 
   ggplot(aes(x = label, y = goals_per_game, group = 1)) +
   geom_line() +
@@ -291,8 +289,8 @@ plot <- ac_goals_df %>%
   theme_minimal() +
   theme(text = element_text(family = "Roboto Condensed"),
         axis.title = element_text(size = 12),
-        axis.text = element_text(size = 10)) +
-  annotate(geom = "label", x = "'56", y = 5.23, family = "Roboto Condensed",
+        axis.text = element_text(size = 12)) +
+  annotate(geom = "label", x = "'56", y = 5.15, family = "Roboto Condensed",
            color = "black", 
            label = "Total Number of Games Played:", hjust = 0) +
   annotate(geom = "text", x = "'60", y = 4.9, 
@@ -324,59 +322,52 @@ plot <- ac_goals_df %>%
                         Incredibly low amount of goals in Group B
                         (15 in 10 Games) and in Knock-Out Stages
                         (4 goals in 4, only 1 scored in normal time)")) +
-  annotate(geom = "segment", x = 9, xend = 9, y = 1.6, yend = 3.75,
+  annotate(geom = "segment", x = 9, xend = 9, y = 1.65, yend = 3.75,
            color = "red") +
   ggimage::geom_emoji(aes(image = '26bd'), size = 0.03) 
 
 plot
 ggsave(filename = paste0(here::here("Asian Cup 2019"), "/gpg_plot.png"), 
-       width = 8, height = 6)
+       width = 8, height = 7, dpi = 300)
 plot <- image_read(paste0(here::here("Asian Cup 2019"), "/gpg_plot.png"))
 ```
 
-However, I'm not finished yet! I wanted to try to make this look a bit more "official" so I attempted to add the Asian Cup logo on the top right corner. There are probably alternative ways to how I did it below, especially by using grobs, but I was reminded of [this](https://www.danielphadley.com/ggplot-logo/) blog post by [Daniel Hadley](https://twitter.com/danielphadley) who used the `magick` package to add a footer with a logo onto a ggplot object. I've used `magick` before for animations and this was a good chance to try it out for image editing.
+However, I'm not finished yet! I wanted to try to make this look a bit more "official" so I attempted to add the Asian Cup logo on the top right corner. There are probably alternative ways to how I did it below, especially by using grobs, but I was reminded of [this](https://www.danielphadley.com/ggplot-logo/) blog post by [Daniel Hadley](https://twitter.com/danielphadley) who used the `magick` package to add a footer with a logo onto a `ggplot` object. I've used `magick` before for animations and this was a good chance to try it out for image editing. Compared to Daniel Hadley's example I needed to have the logo on the right corner so I had to find an alternative way of creating a blank canvas with `image_blank()` and then placing everything on top of that with `image_composite()` and `image_append()`.
 
-```{r, fig.width=8, fig.height=6}
+```{r, fig.align='center'}
 logo_raw <- image_read("https://upload.wikimedia.org/wikipedia/en/a/ad/2019_afc_asian_cup_logo.png")
 
-logo_proc <- logo_raw %>% image_scale("100")
+logo_proc <- logo_raw %>% image_scale("600")
 
 # create blank canvas
-a <- image_blank(width = 6, height = 0.8, color = "white")
+a <- image_blank(width = 1000, height = 100, color = "white")
 # combine with logo image and shift logo to the right
-b <- image_composite(image_scale(a, "x100"), image_scale(logo_proc, "x60"), 
-                     offset = "+500+25")
+b <- image_composite(image_scale(a, "x100"), image_scale(logo_proc, "x75"), 
+                     offset = "+880+25")
 # add in the title text
 logo_header <- b %>% 
-  image_annotate(text = glue("Goals per Game throughout the Asian Cup"),
-                 color = "black", size = 18, font = "Roboto Condensed",
+  image_annotate(text = glue("Goals per Game Throughout the History of the Asian Cup"),
+                 color = "black", size = 24, font = "Roboto Condensed",
                  location = "+63+50", gravity = "northwest")
 
-# combine it all together!
-final2_plot <- image_append(image_scale(c(logo_header, plot), "700x550"), stack = TRUE)
+# combine it all together! 
+final2_plot <- image_append(image_scale(c(logo_header, plot), "1000"), stack = TRUE)
+
+# image_write(final2_plot,
+#             glue("{here::here('Asian Cup 2019')}/gpg_plot_final.png"))
+
 final2_plot
-image_write(final2_plot, 
-            glue("{here::here('Asian Cup 2019')}/gpg_plot_final.png"))
 ```
 
-All in all it took a while to tweak the positions of the text and logo image but for my first try it worked well. Also, compared to Daniel Hadley's example I needed to have the logo on the right corner so I had to find an alternative way of creating a blank canvas with `image_blank()` and then placing everything on top of that with `image_composite()` and `image_append()`.
+All in all it took a while to tweak the positions of the text and logo image but for my first try it worked well. There is definitely room for improvement in regards to sizing and scaling though.
 
 Ultimately, I couldn't find much information on why those tournaments in the 80s in particular were such low scoring affairs. I wasn't alive to watch those games on TV nor could I find any illuminating articles or blog posts on the style of Asian football back in the 80s...This was also before Japan really got into soccer so there wasn't anything I could find in Japanese either.
 
 ## Japan's record vs. Group D opponents and rivals
 
-Japan is the most successful team in the competition with 4 championships but who are their opponents in the group stages and how have they fared against them
+Japan is the most successful team in the competition with 4 championships but who are their opponents in the group stages and how have they fared against them? While I'm at it I will also check their records against long-time continental rivals such as Iran, South Korea, Saudi Arabia and more recently, Australia.
 
-In the meanwhile we can also check their reocrds against long-time continental rivals such as Iran, South Korea, Saudi Arabia and more recently, Australia.
-
-
-- use Kaggle international results
-- results UP TO END OF WORLD CUP
-- filter AFC Asian Cup, Friendly, AFC Asian Cup qualification
-- filter Asia >>> take out UEFA countries like Kazakhstan, Georgia, Israel, etc.
-
-
-- https://www.kaggle.com/phjulien/a-journey-through-the-history-of-soccer/
+The data I'm going to use comes from [Kaggle](https://www.kaggle.com/martj42/international-football-results-from-1872-to-2017) which has all international football results from 1872 to the World Cup final last year. To add in the federation affiliation (UEFA, AFC, etc.) for each of the countries I slightly modified some code from one of the kernels, ["A Journey Through The History of Soccer"](https://www.kaggle.com/phjulien/a-journey-through-the-history-of-soccer/) by PH Julien.
 
 ```{r}
 federation_files <- Sys.glob("../data/federation_affiliations/*")
@@ -395,7 +386,7 @@ df_federations <- df_federations %>%
   mutate(country = as.character(country) %>% str_trim(side = "both"))
 ```
 
-Now to load the results data and then join it with the affiliations data created by PH Julien.
+Now to load the results data and then join it with the affiliations data.
 
 ```{r, message=FALSE}
 results_raw <- read_csv("../data/results.csv")
@@ -424,7 +415,7 @@ results_japan_cleaned <- results_japan_home %>%
   full_join(results_japan_away)
 ```
 
-Next I need to edit some of the continents for teams that didn't have a match in the federation afiliation data set, for example, "South Korea" is "Korea Republic" in the Kaggle data set.
+Next I need to edit some of the continents for teams that didn't have a match in the federation affiliation data set, for example, "South Korea" is "Korea Republic" in the Kaggle data set.
 
 ```{r}
 results_japan_cleaned <- results_japan_cleaned %>% 
@@ -488,36 +479,7 @@ results_jp_asia %>%
          tournament == "AFC Asian Cup")
 ```
 
-Unfortunately, this dataset doesn't go into extra-time or penalty wins as Japan's Quarter-Final meeting with Jordan in 2004 ended with Japan securing a route to the semis, 4-3 on penalties! 
-
-
-```{r}
-results_jp_asia %>% 
-  filter(opponent == "Uzbekistan") %>% 
-  group_by(result) %>% 
-  count()
-
-results_jp_asia %>% 
-  filter(opponent == "Turkmenistan")
-
-results_jp_asia %>% 
-  filter(opponent == "Oman") %>% 
-  knitr::kable()
-
-
-results_jp_asia %>% 
-  filter(opponent %in% c("Oman", "Uzbekistan", "Turkmenistan")) %>% 
-  group_by(result, opponent) %>% 
-  tally()
-
-results_jp_asia %>% 
-  filter(opponent %in% c("Oman", "Uzbekistan", "Turkmenistan")) %>% 
-  group_by(result, opponent) %>% 
-  summarize(j_g = sum(japan_goals),
-            o_g = sum(opp_goals),
-            n = n()) %>% 
-  spread(result, n)
-```
+Unfortunately, this data set doesn't go into extra-time or penalty wins as Japan's Quarter-Final meeting with Jordan in 2004 ended with Japan securing a route to the semis, 4-3 on penalties! 
 
 I can create a function that'll filter for certain opponents and tournaments and aggregate the results. With the second argument being `...`, `tidyeval` allows me to input any kind of filter condition for an opponent, tournament, etc. The `if else` statement protects against cases where Japan never had that type of result against an opponent and makes sure that a column populated by 0s is created.
 
@@ -563,13 +525,7 @@ japan_versus(data = results_jp_asia,
              opponent == "China")
 ```
 
-I can put in multiple filter conditions as necessary as well.
-
-```{r}
-results_jp_asia %>% 
-  japan_versus(opponent %in% c("Iraq", "Qatar"),
-               tournament == "AFC Asian Cup")
-```
+I can put in multiple filter conditions if needed as well.
 
 ```{r}
 japan_versus(data = results_jp_asia,
@@ -579,14 +535,30 @@ japan_versus(data = results_jp_asia,
 
 As you can see Japan has never lost or drawn against India, Palestine, or Vietnam so in the data there wouldn't have been any rows with "Loss" in the results column. With the function I created I was able to impute results that didn't exist and fill them in with 0s!
 
-Now let's take a look at how Japan have historically played against the other teams in Group D of this year's Asian Cup.
+Let's check Japan's performance against our main rivals in the Asian Cup. Here I make the tables look a lot nicer with the options in the `kable` and `kableExtra` packages.
+
+```{r, fig.align='center'}
+results_jp_asia %>% 
+  japan_versus(opponent %in% c("Iran", "Korea Republic", "Saudi Arabia"),
+               tournament == "AFC Asian Cup") %>% 
+  knitr::kable(format = "html",
+               caption = "Japan vs. Historic Rivals in the Asian Cup") %>% 
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::add_header_above(c(" ", "Result" = 3, "Goals" = 2))
+```
+
+Now let's take a look at how Japan have historically played against the other teams in Group F of this year's Asian Cup.
 
 ```{r}
 results_jp_asia %>% 
-  japan_versus(opponent %in% c("Oman", "Uzbekistan", "Turkmenistan"))
+  japan_versus(opponent %in% c("Oman", "Uzbekistan", "Turkmenistan")) %>% 
+  knitr::kable(format = "html",
+               caption = "Japan's Record vs. Group F Teams") %>% 
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::add_header_above(c(" ", "Result" = 3, "Goals" = 2))
 ```
 
-We see no rows here for Turkmenistan. This is due to the fact that until this week Japan had **never** played against them in any friendly or competitive game before!
+We see no rows here for Turkmenistan. This is due to the fact that until just this past week Japan had **never** played against them in a friendly or competitive game!
 
 # Conclusion
 
@@ -596,7 +568,7 @@ Japan
 
 South Korea and Iran
 
-thankfull south korea should be on the other side of the bracket and we would also only meet Iran in the semifinals (provided both teams finish top of their respective groups)
+thankfully south korea should be on the other side of the bracket and we would also only meet Iran in the semifinals (provided both teams finish top of their respective groups)
 
 Japan could meet Australia in the Quarters but without Aaron Mooy they're a much weaker side as shown in their abject loss to Jordan in their opening match.
 
