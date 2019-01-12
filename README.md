@@ -1,5 +1,8 @@
 ## Re-create goals, stats viz, etc. from the World Cup and beyond. (Using ggplot2, ggsoccer, and more)
 
+### Asian Cup 2019 blog post:
+- [Visualizing the Asian Cup!](https://ryo-n7.github.io/2019-01-11-visualize-asian-cup/)
+
 ### World Cup blog posts:
 - [Part 1: Recreating the Goals of the World Cup!](https://ryo-n7.github.io/2018-06-29-visualize-worldcup/)
 - [Part 2: Final Matchday Drama of the World Cup Group Stages!](https://ryo-n7.github.io/2018-07-05-visualize-worldcup-part-2/)
@@ -11,6 +14,7 @@
 - Group Table Final Matchday: `World Cup/RMarkdown/group_table_final_matchday.rmd`
 - Animated Japan Uniforms: `World Cup/RMarkdown/historical_kits.rmd`
 - Liverpool FC Age-Utility Matrix: [Gist](https://gist.github.com/Ryo-N7/5309ba2496b4f75a0747166bfbc52270)
+- Jürgen Klopp's Managerial History with Elo Ratings: [Gist](https://gist.github.com/Ryo-N7/2067e6c63f66ca7a7039b114d51bd40d)
 
 ### Miscellaneous:
 - [Tokyo.R Presentation](http://rpubs.com/Ryo-N7/visualize_world_cup_with_R)

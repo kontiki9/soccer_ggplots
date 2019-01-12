@@ -707,3 +707,113 @@ results_jp_asia %>%
              j_goals = sum(.$j_goals),
              o_goals = sum(.$o_goals)))
 ```
+
+
+
+# waffle charts
+
+```{r}
+library(waffle)
+
+tibble(
+  team = c("Liverpool FC", "Draw", "Man. Utd"),
+  values = c(55, 46, 68)
+) -> liv_man
+
+ggplot(liv_man, aes(fill = team, values = values)) +
+  geom_waffle(color = "white", size=1.125, n_rows = 6) +
+  scale_x_discrete(expand=c(0,0)) +
+  scale_y_discrete(expand=c(0,0)) +
+  ggthemes::scale_fill_tableau(name=NULL) +
+  coord_equal() +
+  hrbrthemes::theme_ipsum_rc(grid="") +
+  theme_enhance_waffle() +
+  labs(title = "The North West Derby")
+```
+
+
+## japan_versus function
+
+```{r}
+japan_versus <- function(data, ...) {
+  # filter 
+  filter_vars <- enquos(...)
+  
+  jp_vs <- data %>% 
+    filter(!!!filter_vars) %>% 
+    # count results type per opponent
+    group_by(result, opponent) %>% 
+    mutate(n = n()) %>% 
+    ungroup() %>% 
+    # sum amount of goals by Japan and opponent
+    group_by(result, opponent) %>% 
+    summarize(j_g = sum(japan_goals),
+              o_g = sum(opp_goals),
+              n = n()) %>% 
+    ungroup() %>% 
+    # spread results over multiple columns
+    spread(result, n) %>% 
+    # 1. failsafe against no type of result against an opponent
+    # 2. sum up counts per opponent
+    group_by(opponent) %>% 
+    mutate(Win = if("Win" %in% names(.)){return(Win)} else{return(0)},
+         Draw = if("Draw" %in% names(.)){return(Draw)} else{return(0)},
+         Loss = if("Loss" %in% names(.)){return(Loss)} else{return(0)}) %>% 
+    summarize(Win = sum(Win, na.rm = TRUE),
+              Draw = sum(Draw, na.rm = TRUE),
+              Loss = sum(Loss, na.rm = TRUE),
+              `Goals For` = sum(j_g),
+              `Goals Against` = sum(o_g))
+  
+  return(jp_vs)
+}
+```
+
+```{r, fig.height = 4, fig.width=3}
+library(waffle)
+library(extrafont)
+loadfonts(device = "win")
+
+results_jp_asia <- readRDS("../data/results_jp_asia.RDS")
+
+glimpse(results_jp_asia)
+
+jp_aus <- results_jp_asia %>% 
+  japan_versus(opponent == "Australia") %>% 
+  select(-opponent, Japan = Win, Australia = Loss) %>% 
+  gather(key = "team", value = "values", -`Goals For`, -`Goals Against`) %>% 
+  select(-contains("Goals"))
+
+waffle(
+  jp_aus, rows = 4, size = 1, 
+  title = glue("
+               Japan vs. Australia: 
+               The New 'Asian' Rivalry"),
+  colors = c("red", "grey", "blue"), 
+  use_glyph = "futbol", glyph_size = 5,
+  legend_pos = "bottom"
+)
+
+```
+
+
+
+```{r}
+pal <- c("Japan" = "blue", "Draw" = "grey", "South Korea" = "red")
+
+results_jp_asia %>% 
+  japan_versus(opponent == "Korea Republic") %>% 
+  select(-opponent, Japan = Win, `South Korea` = Loss) %>% 
+  gather(key = "team", value = "values", -`Goals For`, -`Goals Against`) %>% 
+  ggplot(aes(fill = team, values = values)) +
+  geom_waffle(color = "white", size = 1.125, n_rows = 6) +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_fill_manual(values = pal, name = NULL) +
+  coord_equal() +
+  hrbrthemes::theme_ipsum_rc(grid="") +
+  theme_enhance_waffle() +
+  labs(title = "Japan vs. South Korea")
+
+```
+
