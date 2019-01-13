@@ -304,6 +304,125 @@ image_write(final2_plot,
 - patchwork to include top scoring countries + other additional info
 
 
+## add logo 2.0
+
+```{r}
+ac_goals_df %>% 
+  ggplot(aes(x = label, y = goals_per_game, group = 1)) +
+  geom_line() +
+  scale_y_continuous(limits = c(NA, 5.35),
+                     breaks = c(1.5, 2, 2.5, 3, 3.5, 4, 4.5)) +
+  labs(x = "Tournament (Year)", y = "Goals per Game",
+       title = "Goals per Game throughout the Asian Cup.") +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        #title = element_text(size = 18),
+        axis.title = element_text(size = 12),
+        axis.text = element_text(size = 10)) +
+  annotate(geom = "label", x = "'56", y = 5.23, family = "Roboto Condensed",
+           color = "black", 
+           label = "Total Number of Games Played:", hjust = 0) +
+  annotate(geom = "text", x = "'60", y = 4.9, 
+           label = "6", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 1, xend = 3, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'68", y = 4.9, 
+           label = "10", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 3.8, xend = 4.2, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'72", y = 4.9, 
+           label = "13", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 4.8, xend = 5.2, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'76", y = 4.9, 
+           label = "10", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 5.8, xend = 6.2, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'84", y = 4.9, 
+           label = "24", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 7, xend = 9, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = "'92", y = 4.9, 
+           label = "16", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 9.8, xend = 10.2, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = 11.5, y = 4.9, 
+           label = "26", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 11, xend = 12, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = 14.5, y = 4.9, 
+           label = "32", family = "Roboto Condensed") +
+  annotate(geom = "segment", x = 13, xend = 16, y = 4.8, yend = 4.8) +
+  annotate(geom = "text", x = 9, y = 4, family = "Roboto Condensed",
+           label = glue("
+                        Incredibly low amount of goals in Group B
+                        (15 in 10 Games) and in Knock-Out Stages
+                        (4 goals in 4, only one scored in normal time)")) +
+  annotate(geom = "segment", x = 9, xend = 9, y = 1.6, yend = 3.6,
+           color = "red") +
+  ggimage::geom_emoji(aes(image = '26bd'), size = 0.03) 
+
+ggsave(filename = paste0(here::here("Asian Cup 2019"), "/gpg_title_plot.png"))
+plot <- image_read(paste0(here::here("Asian Cup 2019"), "/gpg_title_plot.png"))
+```
+
+
+```{r}
+add_logo <- function(plot_path, logo_path, logo_position, logo_scale = 10){
+
+    # Requires magick R Package https://github.com/ropensci/magick
+
+    # Useful error message for logo position
+    if (!logo_position %in% c("top right", "top left", "bottom right", "bottom left")) {
+        stop("Error Message: Uh oh! Logo Position not recognized\n  Try: logo_positon = 'top left', 'top right', 'bottom left', or 'bottom right'")
+    }
+
+    # read in raw images
+    plot <- magick::image_read(plot_path)
+    logo_raw <- magick::image_read(logo_path)
+
+    # get dimensions of plot for scaling
+    plot_height <- magick::image_info(plot)$height
+    plot_width <- magick::image_info(plot)$width
+
+    # default scale to 1/10th width of plot
+    # Can change with logo_scale
+    logo <- magick::image_scale(logo_raw, as.character(plot_width/logo_scale))
+
+    # Get width of logo
+    logo_width <- magick::image_info(logo)$width
+    logo_height <- magick::image_info(logo)$height
+
+    # Set position of logo
+    # Position starts at 0,0 at top left
+    # Using 0.01 for 1% - aesthetic padding
+
+    if (logo_position == "top right") {
+        x_pos = plot_width - logo_width - 0.01 * plot_width
+        y_pos = 0.01 * plot_height
+    } else if (logo_position == "top left") {
+        x_pos = 0.01 * plot_width
+        y_pos = 0.01 * plot_height
+    } else if (logo_position == "bottom right") {
+        x_pos = plot_width - logo_width - 0.01 * plot_width
+        y_pos = plot_height - logo_height - 0.01 * plot_height
+    } else if (logo_position == "bottom left") {
+        x_pos = 0.01 * plot_width
+        y_pos = plot_height - logo_height - 0.01 * plot_height
+    }
+
+    # Compose the actual overlay
+    magick::image_composite(plot, logo, offset = paste0("+", x_pos, "+", y_pos))
+
+}
+```
+
+
+
+```{r}
+add_logo(plot_path = "gpg_title_plot.png",
+         logo_path = "https://upload.wikimedia.org/wikipedia/en/a/ad/2019_afc_asian_cup_logo.png",
+         logo_position = "top right",
+         logo_scale = 15) -> plot_2.0
+
+plot_2.0
+```
+
+
+
 
 
 
@@ -461,23 +580,63 @@ acup_kickoff <- acup_url %>%
 - count up total number of hours per each spectator country
 
 ```{r}
+acup_kickoff %>% 
+  mutate(match_num = row_number(),
+         match_type = if_else(between(match_num, 37, 51), 
+                              "Knock-Out Stage", "Group Stage"),
+         time = value %>% str_replace("\\(.*\\)", "")) %>% 
+  mutate(time2 = hm(time),
+         time_ac2 = force_tz(time2, "Asia/Dubai"), # time based in UTC +4
+         time_jp = with_tz(time_ac2, tz = "Asia/Tokyo"), # UTC +4 time converted to Japan
+         time_jp_end = time_jp + hm("2 0"),
+         time_ac = with_tz(time2, tz = "America/New_York"),
+         timeZONE2 = tz(time_ac)) %>% 
+  mutate(diff = make_difftime(hour = 2),
+         int = as.interval(diff, time_ac2),
+         jp_start = hm("09:00") %>% with_tz(tz = "Asia/Tokyo"),
+         jp_end = hm("12:00") %>% with_tz(tz = "Asia/Tokyo"),
+         jp_work = as.interval(jp_start, jp_end),
+         overlap = int_overlaps(jp_work, int))
 
-#tz <- "Asia/"
-acup_times_df <- acup_kickoff %>% 
+
+acup_kickoff %>% 
   mutate(match_num = row_number(),
          match_type = if_else(between(match_num, 37, 51), 
                               "Knock-Out Stage", "Group Stage"),
          time = value %>% str_replace("\\(.*\\)", "")) %>% 
   mutate(time2 = dmy_hm(time),
+         time3 = hour(time2))
+```
+
+
+
+```{r}
+#tz <- "Asia/"
+acup_times_df <- acup_kickoff %>% 
+  mutate(time = value %>% str_replace("\\(.*\\)", "")) %>% 
+  mutate(time2 = dmy_hm(time)) %>%  # proper time var
+  arrange(time2) %>% 
+  mutate(
+         # match num must arrangeDESC time2
+         match_num = row_number(),
+         match_type = if_else(between(match_num, 37, 51), 
+                              "Knock-Out Stage", "Group Stage"),
+         # 
+         is_weekday = wday(time2, label = TRUE),
          time_ac2 = force_tz(time2, "Asia/Dubai"), # time based in UTC +4
          time_jp = with_tz(time_ac2, tz = "Asia/Tokyo"), # UTC +4 time converted to Japan
          time_jp_end = time_jp + hm("2 0"),
          time_ac = with_tz(time2, tz = "America/New_York")) %>% # UTC +4 time to NYC
   mutate(diff = make_difftime(hour = 2),
          int = as.interval(diff, time_ac2),
-         jp_start = ymd_hms("2019-01-05 09:00:00"),
-         jp_end = ymd_hms("2019-01-05 12:00:00"),
-         jp_work = as.interval(jp_start, jp_end))
+         # jp_start = ymd_hms("2019-01-05 09:00:00", tz = "Asia/Tokyo"),
+         # jp_end = ymd_hms("2019-01-05 12:00:00", tz = "Asia/Tokyo"),
+         jp_match = as.interval(time_jp, time_jp_end),
+         overlap = int_overlaps(jp_match, int)) %>% 
+  select(jp_match, int, overlap)
+
+# now create 9AM-5PM for Japan for each of those days on the match days!!
+# is_weekday? T/F
 
 acup_times_df$jp_work %within% acup_times_df$int
 
