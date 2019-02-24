@@ -15,6 +15,9 @@
 - Animated Japan Uniforms: `World Cup/RMarkdown/historical_kits.rmd`
 - Liverpool FC Age-Utility Matrix: [Gist](https://gist.github.com/Ryo-N7/5309ba2496b4f75a0747166bfbc52270)
 - Jürgen Klopp's Managerial History with Elo Ratings: [Gist](https://gist.github.com/Ryo-N7/2067e6c63f66ca7a7039b114d51bd40d)
+- Jリーグ: 各チームの平均推定市場価格 vs. 平均年齢: [Gist](https://gist.github.com/Ryo-N7/fcfbbfc229250a18c3694192f1c75b4c)
+- Asian Cup Top Scorers: [Gist](https://gist.github.com/Ryo-N7/4b7bbe0d32a4d45e68f20e359a01ff0d)
+- Asian Cup Winners: [Gist](https://gist.github.com/Ryo-N7/4b7bbe0d32a4d45e68f20e359a01ff0d)
 
 ### Miscellaneous:
 - [Tokyo.R Presentation](http://rpubs.com/Ryo-N7/visualize_world_cup_with_R)
