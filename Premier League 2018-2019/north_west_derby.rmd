@@ -99,6 +99,40 @@ lfc_mufc_goals %>%
         text = element_text(family = "Roboto Condensed"))
 ```
 
+# facet
+
+```{r}
+lfc_mufc_goals %>% 
+  mutate(goals_against = goals_against * -1) %>% 
+  ggplot(aes(y = time_frame)) +
+  geom_segment(aes(x = 0, xend = goals_for, yend = time_frame)) +
+  geom_point(aes(x = goals_for), shape = 21, 
+             color = "black", fill = "red", size = 3.5) +
+  geom_segment(aes(x = 0, xend = goals_against, yend = time_frame)) +
+  geom_point(aes(x = goals_against), shape = 21, 
+             color = "black", fill = "black", size = 3.5) +
+  scale_x_continuous(breaks = scales::pretty_breaks(), limits = c(-5, 20),
+                     name = "Goals") +
+  geom_vline(xintercept = 0) +
+  scale_y_discrete(limits = rev(levels(lfc_mufc_goals$time_frame))) +
+  annotate(geom = "label", x = 6.5, y = 3.4, hjust = 0, label = "Goals For") +
+  annotate(geom = "label", x = -5, y = 3.4, hjust = 0, label = "Goals Against") +
+  labs(x = "Goals", y = "",
+       title = "When In A Match Have Liverpool Scored/Conceded?",
+       subtitle = "Lots of excitement (on both ends of the pitch) late in the game!",
+       caption = glue("
+                      by @R_By_Ryo
+                      Source: Wikipedia")) +
+  theme_minimal() +
+  theme(panel.grid.minor.y = element_blank(),
+        axis.text = element_text(size = 12),
+        title = element_text(size = 15),
+        text = element_text(family = "Roboto Condensed")) +
+  facet_wrap(~ team, scales = "free")
+```
+
+
+
 # double-sided lolipop
 
 ```{r}

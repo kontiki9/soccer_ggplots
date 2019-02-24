@@ -93,6 +93,16 @@ asdf %>%
 ```
 
 ```{r}
+jp_bel %>% 
+  cleanlocations() %>% 
+  soccerTransform(method = "statsbomb") %>% 
+  filter(team.name == "Japan") %>% 
+  soccerPassmap(theme = "light")
+```
+
+
+
+```{r}
 # PASS MAP (Complete + Incomplete)
 d3 <- jp_bel %>% 
   cleanlocations() %>% 
@@ -143,7 +153,7 @@ jp_bel %>%
   filter(player.name == "Genki Haraguchi") %>% 
   cleanlocations() %>% 
   soccerTransform(method = "statsbomb") %>%
-  slice(1:20) %>% 
+  #slice(1:200) %>% 
   select(player.name, x = location.x, y = location.y) %>% 
   soccerPath(id = "player.name")
 ```

@@ -12,8 +12,8 @@ knitr::opts_chunk$set(echo = TRUE)
 ## R Markdown
 
 ```{r message=FALSE}
-pacman::p_load(tidyverse, scales, lubridate, ggrepel, glue, extrafont)
-loadfonts()
+pacman::p_load(tidyverse, scales, lubridate, ggrepel, glue, extrafont, grid, gridExtra)
+loadfonts(quiet = TRUE)
 
 ```
 
@@ -174,6 +174,99 @@ klopp %>%
 ```
 
 After learning the managerial ropes at Mainz, Klopp has given both Dortmund and Liverpool the adrenaline shot needed to climb back toward the top!
+
+
+
+
+```{r fig.height = 8, fig.width=11}
+title_grobbo <- textGrob("Jürgen Klopp's Managerial History",
+                  gp = gpar(fontsize = 25, 
+                            fontface = "bold.italic",
+                            fontfamily = "Roboto Condensed"))
+
+subtitle <- c("After learning the managerial ropes at ", "Mainz", ", Klopp has given both ", 
+              "Dortmund ", "and ", "Liverpool ", 
+              "the adrenaline shot needed to climb back to the top!")
+
+colors <- c("black", "#C4122E", "black", "#FFE500", "black", "#D00027", "black")
+
+subtitle_grobbo <- tableGrob(t(subtitle),
+                          theme = ttheme_minimal(padding = unit(c(0, 2), "mm"),
+                                                 base_colour = colors,
+                                                 base_size = 15,
+                                                 base_face = "bold",
+                                                 base_family = "Roboto Condensed"))
+
+plot <- klopp %>% 
+  ggplot() +
+  geom_line(aes(From, y = Elo, color = Club)) +
+  scale_x_date(breaks = pretty_breaks(10)) +
+  scale_y_continuous(limits = c(1430, 2100), position = "right") +
+  scale_color_manual(values = cols, guide = FALSE) +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        plot.title = element_text(size = 25),
+        plot.subtitle = element_text(size = 15),
+        plot.caption = element_text(size = 12),
+        axis.title = element_text(size = 18),
+        axis.text = element_text(size = 15)) +
+  labs(x = NULL, y = "Club Elo Rating", 
+       caption = glue("
+                      @R_by_Ryo
+                      Source: clubelo.com")) +
+  # Connecting segments:
+  annotate(geom = "segment", 
+           x = as.Date("2004-05-24"), xend = as.Date("2004-05-24"),
+           y = 1541.472, yend = 1700) +
+  annotate(geom = "segment", 
+           x = as.Date("2011-05-14"), xend = as.Date("2010-01-01"),
+           y = 1844.078, yend = 1920) +
+  annotate(geom = "segment", 
+           x = as.Date("2012-05-05"), xend = as.Date("2011-12-01"),
+           y = 1912.054, yend = 1970) +
+  annotate(geom = "segment", 
+           x = as.Date("2013-05-01"), xend = as.Date("2013-05-01"),
+           y = 1945.104, yend = 2020) +
+  annotate(geom = "segment", 
+           x = as.Date("2016-05-18"), xend = as.Date("2016-03-01"),
+           y = 1800.110, yend = 1970) +
+  annotate(geom = "segment", 
+           x = as.Date("2018-05-26"), xend = as.Date("2017-10-01"),
+           y = 1913.713, yend = 2020) +
+  # achievements text:
+  geom_label(data = annotations_df, 
+            aes(x = lab_pos, y = y, label = text),
+            family = "Roboto Condensed", size = 4.5) +
+  # Team names + bars:
+  annotate(geom = "segment", 
+           x = as.Date("2001-02-28"), xend = as.Date("2008-06-30"),
+           y = 2050, yend = 2050, color = "#C4122E") +
+  annotate(geom = "text", 
+           x = as.Date("2004-10-29"), y = 2080, 
+           label = "Mainz", family = "Roboto Condensed", 
+           color = "#C4122E", size = 8) +
+  annotate(geom = "segment", 
+           x = as.Date("2008-07-18"), xend = as.Date("2015-06-30"),
+           y = 2050, yend = 2050) +
+  annotate(geom = "text", 
+           x = as.Date("2012-01-08"), y = 2080, 
+           label = "Borussia Dortmund", family = "Roboto Condensed",
+           size = 8) +
+  annotate(geom = "segment", 
+           x = as.Date("2015-10-08"), xend = as.Date("2018-12-30"),
+           y = 2050, yend = 2050, color = "#D00027") +
+  annotate(geom = "text", 
+           x = as.Date("2017-05-19"), y = 2080, 
+           label = "Liverpool", family = "Roboto Condensed", 
+           color = "#D00027", size = 8)
+
+
+grid.arrange(title_grobbo,
+             subtitle_grobbo,
+             plot,
+             heights = c(10, 8, 100))
+```
+
 
 
 

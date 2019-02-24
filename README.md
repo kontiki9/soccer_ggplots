@@ -20,10 +20,16 @@
 - [Tokyo.R Presentation](http://rpubs.com/Ryo-N7/visualize_world_cup_with_R)
 - [Youtube Recording of Tokyo.R Presentation](https://www.youtube.com/watch?v=tNncHFd5dVo)
 
-Examples: 
+### Examples: 
+
+## Top Scorers of the Asian Cup
+![](https://i.imgur.com/F5TOJQP.png)
 
 ## First Goal of the World Cup: Yuri Gazinsky
 ![](https://i.imgur.com/GqNHFPl.gif)
+
+## Jürgen Klopp's Managerial History
+![](https://i.imgur.com/Xcw2nAK.png)
 
 ## Age-Utility Matrix: Liverpool FC
 ![](https://i.imgur.com/Lk1lpMg.png)
@@ -34,9 +40,8 @@ Examples:
 ## Group D Final Matchday Table:
 ![](https://i.imgur.com/FlntjgH.png)
 
-
 ## Offside Trap gif:
 ![](https://i.imgur.com/ceSA3YB.gif)
 
 ## Japan uniforms gif:
-![](https://i.imgur.com/UTirZjG.gif)
+![](https://i.imgur.com/UTirZjG.gifv)

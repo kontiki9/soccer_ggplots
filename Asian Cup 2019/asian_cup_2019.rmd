@@ -645,6 +645,72 @@ acup_times_df$jp_work %within% acup_times_df$int
 ymd_hms("2011-07-01 09:00:00", tz = "Pacific/Auckland")
 
 
+
+
+```{r}
+acup_kickoff %>% 
+  mutate(time = value %>% str_replace("\\(.*\\)", "")) %>% 
+  mutate(time2 = dmy_hm(time)) %>%  # proper time var
+  arrange(time2) %>% 
+  mutate(match_num = row_number(),
+         match_type = if_else(between(match_num, 37, 51), 
+                              "Knock-Out Stage", "Group Stage"),
+         # 
+         is_weekday = wday(time2, label = TRUE),
+         time_ac2 = force_tz(time2, "Asia/Dubai"), # time based in UTC +4
+         time_ny = with_tz(time_ac2, tz = "America/New_York"), # converted to NYC
+         time_ny_end = time_ny + hm("2 0")) %>% 
+  mutate(work_time = time %>% str_sub(end = -6),
+         work_time_begin = glue("{work_time} 09:00") %>% 
+           dmy_hm(tz = "America/New_York"),
+         work_time_end = glue("{work_time} 17:00") %>% 
+           dmy_hm(tz = "America/New_York")) %>% 
+  # create intervals
+  mutate(diff = make_difftime(hour = 2),
+         int = as.interval(diff, time_ac2),
+         int_ny_work = as.interval(work_time_begin, work_time_end),
+         ny_match = as.interval(time_ny, time_ny_end),
+         overlap = int_overlaps(ny_match, int_ny_work)) %>% 
+  # sum overlapping hours?
+  mutate(overlap_num = pmax(pmin(time_ny_end, work_time_end) - 
+                              pmax(time_ny, work_time_begin) + 1,0)) %>% 
+  mutate(overlap_laplap = map2_dbl(work_time_begin, work_time_end,
+                                   ~pmax((pmin(time_ny_end, .y)) - 
+                                          pmax(time_ny, .x) + 1), 0)) %>% 
+  select(ny_match, int, overlap, overlap_num, overlap_laplap)
+```
+
+
+## NY time
+
+```{r}
+acup_kickoff %>% 
+  mutate(time = value %>% str_replace("\\(.*\\)", "")) %>% 
+  mutate(time2 = dmy_hm(time)) %>%  # proper time var
+  arrange(time2) %>% 
+  mutate(match_num = row_number(),
+         match_type = if_else(between(match_num, 37, 51), 
+                              "Knock-Out Stage", "Group Stage"),
+         # 
+         is_weekday = wday(time2, label = TRUE),
+         time_ac2 = force_tz(time2, "Asia/Dubai"), # time based in UTC +4
+         time_jp = with_tz(time_ac2, tz = "Asia/Tokyo"), # UTC +4 time converted to Japan
+         time_jp_end = time_jp + hm("2 0")) %>% 
+  mutate(work_time = time %>% str_sub(end = -6),
+         work_time_begin = glue("{work_time} 09:00") %>% 
+           dmy_hm(tz = "Asia/Tokyo"),
+         work_time_end = glue("{work_time} 17:00") %>% 
+           dmy_hm(tz = "Asia/Tokyo")) %>% 
+  # create intervals
+  mutate(diff = make_difftime(hour = 2),
+         int = as.interval(diff, time_ac2),
+         int_jp_work = as.interval(work_time_begin, work_time_end),
+         jp_match = as.interval(time_jp, time_jp_end),
+         overlap = int_overlaps(jp_match, int_jp_work)) %>% 
+  select(jp_match, int, overlap)
+```
+
+
 # Japan vs. RIVALS
 
 - use Kaggle international results
@@ -879,13 +945,20 @@ tibble(
   values = c(55, 46, 68)
 ) -> liv_man
 
-ggplot(liv_man, aes(fill = team, values = values)) +
-  geom_waffle(color = "white", size=1.125, n_rows = 6) +
-  scale_x_discrete(expand=c(0,0)) +
-  scale_y_discrete(expand=c(0,0)) +
-  ggthemes::scale_fill_tableau(name=NULL) +
+cols <- c("Liverpool FC" = "red", 
+          "Draw" = "grey",
+          "Man. Utd" = "black")
+
+liv_man %>% 
+  mutate(team = as_factor(team) %>% fct_relevel("Liverpool FC", "Draw", "Man. Utd")) %>% 
+  ggplot(aes(fill = team, values = values)) +
+  geom_waffle(color = "white", size = 1.125, n_rows = 6) +
+  scale_x_discrete(expand = c(0, 0)) +
+  scale_y_discrete(expand = c(0, 0)) +
+  scale_fill_manual(values = cols, name = NULL) +
+  #ggthemes::scale_fill_tableau(name=NULL) +
   coord_equal() +
-  hrbrthemes::theme_ipsum_rc(grid="") +
+  hrbrthemes::theme_ipsum_rc(grid = "") +
   theme_enhance_waffle() +
   labs(title = "The North West Derby")
 ```
@@ -976,3 +1049,8 @@ results_jp_asia %>%
 
 ```
 
+
+
+## time between start-finish + distance travelled
+
+bar plot + calendar plot
