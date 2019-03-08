@@ -243,9 +243,10 @@ j_league_2019_age_value <- j_league_2019_age_value_raw %>%
 ```{r fig.height=6, fig.width=8}
 j_league_2019_age_value %>% 
   ggplot(aes(x = avg_age, y = avg_value)) +
-  geom_label_repel(aes(label = team), vjust = -1.25, size = 3) +
+  #geom_label_repel(aes(label = team), vjust = -1.25, size = 3) +
   #geom_label(aes(label = team), vjust = -1.25, size = 2.5) +
   geom_image(aes(image = img), size = 0.065) +
+  geom_label_repel(aes(label = team), vjust = -1.25, size = 3) +
   scale_x_continuous(breaks = pretty_breaks(5),
                      limits = c(24, 29) ) +
   scale_y_continuous(breaks = c(2000, 4000, 6000, 8000, 10000, 12000, 14000),
