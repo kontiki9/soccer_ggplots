@@ -9,31 +9,31 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Avg. Value vs. Avg. Age
-
-
+# Avg. Value vs. Avg. Age
 
 - also look at % of foreign players
 - Iniesta, Torres, Podolski?
 - 
 
 
+## Packages
 
-
-```{r}
-library(rvest)
-library(polite)
-library(dplyr)
-library(tidyr)
-library(purrr)
-library(ggplot2)
-library(scales)
-library(ggimage)
-library(stringr)
-library(glue)
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(tidyverse, polite, scales, ggimage, rvest, glue, extrafont, ggrepel)
+loadfonts()
+# library(rvest)
+# library(polite)
+# library(dplyr)
+# library(tidyr)
+# library(purrr)
+# library(ggplot2)
+# library(scales)
+# library(ggimage)
+# library(stringr)
+# library(glue)
 ```
 
-
+## 2018 season
 
 ```{r}
 #\31 022
@@ -70,8 +70,6 @@ avg_value <- scrape(session) %>%
 team_img <- scrape(session) %>% 
   html_nodes("#yw1 > table > tbody > tr > td.zentriert.no-border-rechts > a > img") %>% 
   html_attr("src")
-
-
 ```
 
 
@@ -81,12 +79,12 @@ resultados <- list(team_name, avg_age, avg_value, team_img)
 
 col_name <- c("team", "avg_age", "avg_value", "img")
 
-j_league_age_value_raw <- resultados %>% 
+j_league_2018_age_value_raw <- resultados %>% 
   reduce(cbind) %>% 
-  as_data_frame() %>% 
+  as_tibble() %>% 
   set_names(col_name)
 
-j_league_age_value <- j_league_age_value_raw %>% 
+j_league_2018_age_value <- j_league_2018_age_value_raw %>% 
   mutate(avg_age = avg_age %>% str_replace_all(",", ".") %>% as.numeric(),
          avg_value = avg_value %>% 
            str_replace_all("Th. \200", "000") %>% 
@@ -95,30 +93,61 @@ j_league_age_value <- j_league_age_value_raw %>%
          img = img %>% str_replace("/tiny/", "/head/")) %>% 
 # Googled Euro-to-Yen exchange rate: 1 Euro = 129.39 Yen (8.25.18)
   mutate(avg_value = (avg_value * 129.39) %>% round(digits = 0),
-         avg_value = avg_value / 10000) 
+         avg_value = avg_value / 10000) %>% 
+  # fix Kobe manually:
+  mutate(avg_value = case_when(
+    team == "Vissel Kobe" ~ 1020000,
+    TRUE ~ avg_value
+  )) %>% 
+  mutate(avg_value = case_when(
+    team == "Vissel Kobe" ~ (avg_value * 129.39)/10000,
+    TRUE ~ avg_value
+  ))
 
+j_league_2018_age_value %>% glimpse()
 ```
 
+
+## tategaki funs
+```{r}
+tategaki <- function(x){
+  x <- chartr("ー", "丨", x) # 長音符の処理
+  x <- strsplit(split="", x)
+  sapply(x, paste, collapse="\n")
+}
+
+tategaki_alt <- function(x){
+  x <- stringr::str_replace_all(x, "ー", "丨") # 長音符の処理
+  stringr::str_wrap(x, width = 1)
+}
+```
+
+
+
 ```{r fig.height=6, fig.width=8}
-j_league_age_value %>% 
+j_league_2018_age_value %>% 
   ggplot(aes(x = avg_age, y = avg_value)) +
-  geom_image(aes(image = img), size = 0.065) +
-  scale_x_continuous(breaks = pretty_breaks(5),
-                     limits = c(24, 29) ) +
-  scale_y_continuous(labels = comma,
-                   breaks = pretty_breaks(5)) +
-  labs(title = "Jリーグ: 各チームの平均推定市場価格 vs. 平均年齢",
+  #geom_image(aes(image = img), size = 0.065) +
+  geom_point(color = "darkgreen", size = 6) +
+  geom_label_repel(aes(label = team), size = 3) +
+  scale_x_continuous(breaks = c(23, 24, 25, 26, 27, 28),
+                     labels = c(23, 24, 25, 26, 27, 28),
+                     limits = c(22.5, 28) ) +
+  scale_y_continuous(#labels = comma,
+                     breaks = c(2000, 4000, 6000, 8000, 10000, 12000, 14000),
+                     labels = c(2000, 4000, 6000, 8000, 10000, 12000, 14000) %>% comma) +
+  labs(title = "Jリーグ 2018: 各チームの平均推定市場価格 vs. 平均年齢",
        subtitle = "",
        caption = glue("
                       データ：transfermarkt.com
-                      By: @R_by_Ryo
-                      Inspired by: @fussbALEXperte"),
+                      By: @R_by_Ryo"),
        x = "平均年齢",
-       y = "平均推定市場価格 (万円)") +
+       y = tategaki_alt("平均推定市場価格 (万円)")) +
   theme_minimal() +
-  theme(text = element_text(family = "IPAexGothic"))
+  theme(text = element_text(family = "IPAexGothic"),
+        axis.title.y = element_text(angle = 0, vjust= 0.5))
 
-ggsave(filename = "j_league_age_value_plot.png", height = 6, width = 8)
+ggsave(filename = "j_league_2018_age_value_plot.png", height = 6, width = 8)
 ```
 
 
@@ -146,7 +175,7 @@ result_name <- scrape(session_cz) %>%
   html_nodes(".bilderrahmen-fixed") %>% 
   html_attr("title") 
 
-# grab age
+# grab nationality
 result_nationality <- scrape(session_cz) %>% 
   html_nodes("#yw1 .flaggenrahmen") %>% 
   html_attr("title")
@@ -158,5 +187,84 @@ result_value <- scrape(session_cz) %>%
 
 
 ```
+
+
+## 2019 season
+
+
+```{r}
+url <- "https://www.transfermarkt.com/j-league-division-1/startseite/wettbewerb/JAP1/saison_id/2018"
+
+session <- bow(url)
+
+# grab team name from img instead
+team_name <- scrape(session) %>% 
+  html_nodes("#yw1 > table > tbody > tr > td.zentriert.no-border-rechts > a > img") %>% 
+  html_attr("alt")
+
+avg_age <- scrape(session) %>% 
+  html_nodes("tbody .hide-for-pad:nth-child(5)") %>% 
+  html_text()
+
+avg_value <- scrape(session) %>% 
+  html_nodes("tbody .rechts+ .hide-for-pad") %>% 
+  html_text()
+
+team_img <- scrape(session) %>% 
+  html_nodes("#yw1 > table > tbody > tr > td.zentriert.no-border-rechts > a > img") %>% 
+  html_attr("src")
+```
+
+
+
+```{r}
+resultados <- list(team_name, avg_age, avg_value, team_img)
+
+col_name <- c("team", "avg_age", "avg_value", "img")
+
+j_league_2019_age_value_raw <- resultados %>% 
+  reduce(cbind) %>% 
+  as_tibble() %>% 
+  set_names(col_name)
+
+j_league_2019_age_value <- j_league_2019_age_value_raw %>% 
+  mutate(avg_age = avg_age %>% str_replace_all(",", ".") %>% as.numeric(),
+         avg_value = avg_value %>% 
+           str_replace_all("Th. \200", "000") %>% 
+           str_replace(" ", "") %>% 
+           as.numeric(),
+         img = img %>% str_replace("/tiny/", "/head/")) %>% 
+# Googled Euro-to-Yen exchange rate: 1 Euro = 126.4 Yen (3.7.19)
+  mutate(avg_value = (avg_value * 126.4) %>% round(digits = 0),
+         avg_value = avg_value / 10000) 
+
+```
+
+```{r fig.height=6, fig.width=8}
+j_league_2019_age_value %>% 
+  ggplot(aes(x = avg_age, y = avg_value)) +
+  geom_label_repel(aes(label = team), vjust = -1.25, size = 3) +
+  #geom_label(aes(label = team), vjust = -1.25, size = 2.5) +
+  geom_image(aes(image = img), size = 0.065) +
+  scale_x_continuous(breaks = pretty_breaks(5),
+                     limits = c(24, 29) ) +
+  scale_y_continuous(breaks = c(2000, 4000, 6000, 8000, 10000, 12000, 14000),
+                     labels = c(2000, 4000, 6000, 8000, 10000, 12000, 14000) %>% comma) +
+  labs(title = "Jリーグ 2019: 各チームの平均推定市場価格 vs. 平均年齢",
+       subtitle = "",
+       caption = glue("
+                      データ：transfermarkt.com
+                      By: @R_by_Ryo"),
+       x = "平均年齢",
+       y = tategaki_alt("平均推定市場価格 (万円)")) +
+  theme_minimal() +
+  theme(text = element_text(family = "IPAexGothic"),
+        axis.title.y = element_text(angle = 0, vjust= 0.5))
+
+ggsave(filename = "j_league_2019_age_value_plot.png", height = 6, width = 8)
+```
+
+- side-by-side plot
+- underneath == comparison difference in teams >>> leave out promoted/relegated? (have as separate)
 
 

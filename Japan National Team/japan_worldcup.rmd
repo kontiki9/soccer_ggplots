@@ -70,7 +70,8 @@ jp_pol %>%
   cleanlocations() %>% 
   soccerTransform(method = "statsbomb") %>% 
   filter(team.name == "Japan", type.name == "Pressure") %>% 
-  soccerHeatmap(x = "location.x", y = "location.y") 
+  soccerHeatmap(x = "location.x", y = "location.y",
+                title = "Japan's Defensive Pressure vs. Poland") 
 
 # Avg. Passing/Shooting/etc. position map
 jp_bel %>% 
@@ -102,7 +103,7 @@ jp_bel %>%
 
 
 
-```{r}
+```{r, fig.height=5, fig.width=7}
 # PASS MAP (Complete + Incomplete)
 d3 <- jp_bel %>% 
   cleanlocations() %>% 
@@ -116,6 +117,7 @@ soccerPitch(arrow = "r",
   geom_segment(data = d3, aes(x = location.x, xend = pass.end_location.x, y = location.y, 
                               yend = pass.end_location.y, col = pass.outcome), alpha = 0.75) +
   geom_point(data = d3, aes(x = location.x, y = location.y, col = pass.outcome), alpha = 0.5) +
+  scale_color_manual(values = c("red", "blue")) +
   guides(color = FALSE)
 
 ```
