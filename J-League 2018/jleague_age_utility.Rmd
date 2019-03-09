@@ -165,7 +165,7 @@ kobe_minutes %>%
   ggplot(aes(x = age, y = min_perc)) +
   geom_mark_rect(aes(filter = age >= 26 & age <= 31), 
                     fill = "firebrick1", alpha = 0.5) + 
-  geom_point(color = "#DD2220", size = 2.5) +
+  #geom_point(color = "firebrick1", size = 2.5) +
   geom_point(color = "darkred", size = 2.5) +
   geom_text_repel(
     aes(label = last_name, family = "Roboto Condensed"),
@@ -178,16 +178,44 @@ kobe_minutes %>%
   scale_x_continuous(
     breaks = pretty_breaks(n = 10)) +
   labs(
-    x = "Current Age (As of March 9, 2019)", y = "% of Minutes Played", 
+    x = "年齢 (March 9, 2019)", 
+    y = tategaki_alt("出場時間（％）"), 
     title = "Vissel Kobe: Age-Utility Matrix",
-    subtitle = "J-League 2018 Season",
+    subtitle = "J-League 2018 Season (34 試合: 100% = 3420分)",
     caption = "Data from transfermarkt.com\nBy @R_by_Ryo") +
   theme_bw() +
   theme(
     text = element_text(family = "Roboto Condensed"),
     panel.grid.minor.y = element_blank(),
-    plot.title = element_text(color = "darkred"))
+    plot.title = element_text(color = "darkred", size = 16),
+    plot.subtitle = element_text(size = 14),
+    axis.title.y = element_text(angle = 0, vjust= 0.5),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    panel.border = element_rect(color = "darkred", size = 1.25)) -> kobe_plot
 ```
+
+```{r}
+ggsave(plot = kobe_plot, "../J-League 2018/output/kobe_plot.png",
+       height = 6, width = 8)
+```
+
+
+
+```{r}
+plot_logo <- add_logo(plot_path = "../J-League 2018/output/kobe_plot.png",
+                      logo_path = "https://upload.wikimedia.org/wikipedia/en/8/87/VisselKobe.png",
+                      logo_position = "top right",
+                      logo_scale = 20)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, "../J-League 2018/output/kobe_logo_plot.png")
+```
+
+
 
 # FC Tokyo
 ## scrape Tokyo
@@ -249,12 +277,10 @@ tokyo_minutes <- results_comb %>%
   
   separate(name, into = c("first_name", "last_name"), by = " ") %>%
   # manually fix somes names
-  # mutate(last_name = case_when(
-  #   first_name == "Wellington" ~ "Wellington", 
-  #   first_name == "Seung" ~ "S.G. Kim",
-  #   first_name == "Leandro" ~ "Leandro",
-  #   first_name == "Woo" ~ "W.Y. Jung",
-  #   TRUE ~ last_name)) %>% 
+  mutate(last_name = case_when(
+    first_name == "Lins" ~ "Lins",
+    first_name == "Hyeon" ~ "H.S. Jang",
+    TRUE ~ last_name)) %>%
   
   arrange(desc(min_perc))
 
@@ -286,7 +312,8 @@ tokyo_minutes %>%
   scale_x_continuous(
     breaks = pretty_breaks(n = 10)) +
   labs(
-    x = "Current Age (As of March 9, 2019)", y = "% of Minutes Played", 
+    x = "年齢 (March 9, 2019)", 
+    y = tategaki_alt("出場時間（％）"),  
     title = "FC Tokyo: Age-Utility Matrix",
     subtitle = "J-League 2018 Season",
     caption = "Data from transfermarkt.com\nBy @R_by_Ryo") +
@@ -294,9 +321,32 @@ tokyo_minutes %>%
   theme(
     text = element_text(family = "Roboto Condensed"),
     panel.grid.minor.y = element_blank(),
-    panel.border = element_rect(color = "#271672"),
-    plot.title = element_text(color = "#271672"),
-    plot.subtitle = element_text(color = "#DD2220"))
+    panel.border = element_rect(color = "#271672", size = 1.25),
+    plot.title = element_text(color = "#271672", size = 16),
+    plot.subtitle = element_text(color = "#DD2220", size = 14),
+    axis.title.y = element_text(angle = 0, vjust= 0.5),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)) -> fctokyo_plot
+```
+
+```{r}
+ggsave(plot = fctokyo_plot, "../J-League 2018/output/fctokyo_plot.png",
+       height = 6, width = 8)
+```
+
+
+
+```{r}
+plot_logo <- add_logo(plot_path = "../J-League 2018/output/fctokyo_plot.png",
+                      logo_path = "https://upload.wikimedia.org/wikipedia/en/4/45/FCTokyo.png",
+                      logo_position = "top right",
+                      logo_scale = 18)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, "../J-League 2018/output/fctokyo_logo_plot.png")
 ```
 
 
@@ -406,7 +456,8 @@ shonan_minutes %>%
   scale_x_continuous(
     breaks = pretty_breaks(n = 10)) +
   labs(
-    x = "Current Age (As of March 9, 2019)", y = "% of Minutes Played", 
+    x = "年齢 (March 9, 2019)", 
+    y = tategaki_alt("出場時間（％）"), 
     title = "Shonan Bellmare: Age-Utility Matrix",
     subtitle = "J-League 2019 Season (3 Games So Far: 100% = 270 minutes)",
     caption = "Data from transfermarkt.com\nBy @R_by_Ryo") +
@@ -414,9 +465,12 @@ shonan_minutes %>%
   theme(
     text = element_text(family = "Roboto Condensed"),
     panel.grid.minor.y = element_blank(),
-    panel.border = element_rect(color = "#67B356"),
-    plot.title = element_text(color = "#67B356"),
-    plot.subtitle = element_text(color = "#103C95")) -> shonan_plot
+    panel.border = element_rect(color = "#67B356", size = 1.25),
+    plot.title = element_text(color = "#67B356", size = 16),
+    plot.subtitle = element_text(color = "#103C95", size = 14),
+    axis.title.y = element_text(angle = 0, vjust= 0.5),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)) -> shonan_plot
 ```
 
 
@@ -433,7 +487,7 @@ ggsave(plot = shonan_plot, "../J-League 2018/output/shonan_plot.png",
 plot_logo <- add_logo(plot_path = "../J-League 2018/output/shonan_plot.png",
                       logo_path = "https://upload.wikimedia.org/wikipedia/en/2/2c/ShonanBellmare.png",
                       logo_position = "top right",
-                      logo_scale = 22)
+                      logo_scale = 20)
 
 plot_logo
 ```
