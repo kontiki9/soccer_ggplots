@@ -157,7 +157,7 @@ ggsave(filename = "j_league_2018_age_value_plot.png", height = 6, width = 8)
 ```
 
 
-```{r}
+```{r fig.width = 20}
 
 x <- seq(3, 9, by = 3)
 
@@ -176,6 +176,7 @@ library(patchwork)
 jleague_2018 + jleague_icon_legend + plot_layout(ncol = 2, width = c(1, 1.5))
 ```
 
+- probably scale using magick instead???
 
 Percentage of total value by foreign players?
 

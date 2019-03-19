@@ -1,0 +1,82 @@
+---
+title: "Untitled"
+author: "RN7"
+date: "March 19, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# % team goal involvement (チーム得点貢献度)
+
+- inspiration: https://www.reddit.com/r/soccer/comments/b2wdfn/oc_which_players_are_most_involved_in_their_teams/
+- first try with FC Tokyo
+- then scale it up for all teams
+- do 2018 season as only a few games into 2019 season...
+
+
+# pkgs
+
+```{r, message=FALSE, warning=FALSE}
+pacman::p_load(tidyverse, polite, scales, ggimage, rvest, glue, extrafont, ggrepel)
+loadfonts()
+```
+
+# scrape
+
+```{r}
+url <- "https://www.transfermarkt.com/fc-tokyo/leistungsdaten/verein/6631/reldata/JAP1%262017/plus/1"
+
+# .items
+# .items > tbody:nth-child(2)
+session <- bow(url)
+
+fctokyo_table <- scrape(session) %>% 
+  html_nodes(".items > tbody:nth-child(2)") %>% flatten()
+  magrittr::extract(2)
+  html_table(fill = TRUE) %>% 
+  flatten_df()
+  #magrittr::extract(1)
+  
+# tr.odd:nth-child(1) > td:nth-child(7)
+  
+player_name <- scrape(session) %>% 
+  html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+  html_attr("title") 
+  
+num_goals <- scrape(session) %>% 
+  html_nodes("td:nth-child(7)") %>% 
+  html_text()
+
+num_assists <- scrape(session) %>% 
+  html_nodes("td:nth-child(8)") %>% 
+  html_text()
+
+
+resultados <- list(player_name, num_goals, num_assists)
+col_names <- c("name", "goals", "assists")
+
+fctokyo_results <- resultados %>% 
+  reduce(cbind) %>% 
+  as_tibble() %>% 
+  set_names(col_names)
+
+fctokyo_df <- fctokyo_results %>% 
+  mutate_at(.vars = c("goals", "assists"), ~str_replace(., "-", "0") %>% as.numeric) %>% 
+  mutate(total_goals = sum(goals),
+         total_assists = sum(assists),
+         goal_contrib = goals/total_goals,
+         assist_contrib = assists/total_goals)
+
+fctokyo_df %>% 
+  ggplot(aes(assist_contrib, goal_contrib)) +
+  geom_point() +
+  scale_x_continuous(labels = percent) +
+  scale_y_continuous(labels = percent) +
+  labs(x = "Percentage of Club Goals Assisted",
+       y = "Percentage of Club Goals Scored") +
+  theme_minimal()
+```
+

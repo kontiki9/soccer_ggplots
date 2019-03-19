@@ -19,7 +19,7 @@
 - Asian Cup Top Scorers: [Gist](https://gist.github.com/Ryo-N7/4b7bbe0d32a4d45e68f20e359a01ff0d)
 - Asian Cup Winners: [Gist](https://gist.github.com/Ryo-N7/4b7bbe0d32a4d45e68f20e359a01ff0d)
 
-### Miscellaneous:
+### Tokyo.R Presentation (July 2018):
 - [Tokyo.R Presentation](http://rpubs.com/Ryo-N7/visualize_world_cup_with_R)
 - [Youtube Recording of Tokyo.R Presentation](https://www.youtube.com/watch?v=tNncHFd5dVo)
 
@@ -47,4 +47,4 @@
 ![](https://i.imgur.com/ceSA3YB.gif)
 
 ## Japan uniforms gif:
-![](https://i.imgur.com/UTirZjG.gifv)
+![](https://i.imgur.com/UTirZjG.gif)
