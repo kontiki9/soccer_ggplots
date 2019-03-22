@@ -73,7 +73,16 @@ add_logo <- function(plot_path, logo_path, logo_position, logo_scale = 10){
 ## tategaki function
 
 ```{r}
+tategaki <- function(x){
+  x <- chartr("ー", "丨", x) # 長音符の処理
+  x <- strsplit(split="", x)
+  sapply(x, paste, collapse="\n")
+}
 
+tategaki_alt <- function(x){
+  x <- stringr::str_replace_all(x, "ー", "丨") # 長音符の処理
+  stringr::str_wrap(x, width = 1)
+}
 ```
 
 
@@ -299,7 +308,8 @@ glimpse(tokyo_minutes)
 tokyo_minutes %>% 
   ggplot(aes(x = age, y = min_perc)) +
   geom_mark_rect(aes(filter = age >= 26 & age <= 31), 
-                    fill = "#271672", alpha = 0.5) + 
+                 description = "ピーク年齢*", con.cap = 0,
+                 color = NA, fill = "#271672", alpha = 0.5) + 
   geom_point(color = "#DD2220", size = 2.5) +
   geom_text_repel(
     aes(label = last_name, family = "Roboto Condensed"),
@@ -312,15 +322,17 @@ tokyo_minutes %>%
   scale_x_continuous(
     breaks = pretty_breaks(n = 10)) +
   labs(
-    x = "年齢 (March 9, 2019)", 
+    x = "年齢", 
     y = tategaki_alt("出場時間（％）"),  
-    title = "FC Tokyo: Age-Utility Matrix",
-    subtitle = "J-League 2018 Season",
-    caption = "Data from transfermarkt.com\nBy @R_by_Ryo") +
+    title = "FC東京: 年齢-出場時間プロット",
+    subtitle = "J-League 2018 Season (100% = 3420分)",
+    caption = glue("
+                   データ: transfermarkt.com
+                   *ピーク年齢: 主観
+                   作: @R_by_Ryo")) +
   theme_bw() +
   theme(
     text = element_text(family = "Roboto Condensed"),
-    panel.grid.minor.y = element_blank(),
     panel.border = element_rect(color = "#271672", size = 1.25),
     plot.title = element_text(color = "#271672", size = 16),
     plot.subtitle = element_text(color = "#DD2220", size = 14),
@@ -384,6 +396,8 @@ result_mins <- scrape(session) %>%
 
 ## clean
 
+- NEED TO UPDATE AFTER EVERYMATCH DAY (ex. 3 Matches = 270 min >>> 4 Matches = 360 Min)
+
 ```{r}
 # place each vector into list
 
@@ -408,7 +422,7 @@ shonan_minutes <- results_comb %>%
            str_replace("\\.", "") %>% 
            str_replace("'", "") %>% 
            as.numeric(),
-         min_perc = (minutes / 270) %>% round(digits = 3)) %>% 
+         min_perc = (minutes / 360) %>% round(digits = 3)) %>% 
   
   filter(!is.na(minutes)) %>% 
   
@@ -443,7 +457,8 @@ shonan_minutes %>%
   #   alpha = 0.5,
   #   fill = "#67B356") +
   geom_mark_rect(aes(filter = age >= 26 & age <= 31), 
-                    fill = "#67B356", alpha = 0.5) +
+                 description = "ピーク年齢*", con.cap = 0,
+                 color = NA, fill = "#67B356", alpha = 0.5, size = 0.01) +
   geom_point(color = "#103C95", size = 2.5) +
   geom_text_repel(
     aes(label = last_name, family = "Roboto Condensed"),
@@ -456,15 +471,18 @@ shonan_minutes %>%
   scale_x_continuous(
     breaks = pretty_breaks(n = 10)) +
   labs(
-    x = "年齢 (March 9, 2019)", 
+    x = "年齢 (3月22日2019年)", 
     y = tategaki_alt("出場時間（％）"), 
-    title = "Shonan Bellmare: Age-Utility Matrix",
-    subtitle = "J-League 2019 Season (3 Games So Far: 100% = 270 minutes)",
-    caption = "Data from transfermarkt.com\nBy @R_by_Ryo") +
+    title = "湘南ベルマーレ: 年齢-出場時間プロット",
+    subtitle = "J-League 2019 Season (4節: 100% = 360分)",
+    caption = glue("
+                   データ: transfermarkt.com
+                   *ピーク年齢: 主観
+                   作: @R_by_Ryo")) +
   theme_bw() +
   theme(
     text = element_text(family = "Roboto Condensed"),
-    panel.grid.minor.y = element_blank(),
+    #panel.grid.minor.y = element_blank(),
     panel.border = element_rect(color = "#67B356", size = 1.25),
     plot.title = element_text(color = "#67B356", size = 16),
     plot.subtitle = element_text(color = "#103C95", size = 14),

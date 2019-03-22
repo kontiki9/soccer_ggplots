@@ -164,23 +164,77 @@ team_links <- scrape(session) %>%
   html_nodes("#yw1 > table > tbody > tr > td.zentriert.no-border-rechts > a") %>% 
   html_attr("href")
 
-team_links %>% 
+team_links_df <- team_links %>% 
   enframe(name = NULL) %>% 
   separate(value, c(NA, "team_name", NA, NA, "team_num", NA, NA), sep = "/") %>% 
   mutate(link = glue("https://www.transfermarkt.com/{team_name}/leistungsdaten/verein/{team_num}/reldata/JAP1%262017/plus/1"))
 
 # for each team link:
 
-player_name <- scrape(session) %>% 
-  html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+player_name_info <- function(link) {
+  
+  session <- bow(link)
+  
+  player_name_info <- scrape(session) %>% 
+    html_nodes("#yw1 .bilderrahmen-fixed") %>% 
   html_attr("title") 
   
-num_goals <- scrape(session) %>% 
-  html_nodes("td:nth-child(7)") %>% 
-  html_text()
+}
 
-num_assists <- scrape(session) %>% 
-  html_nodes("td:nth-child(8)") %>% 
-  html_text()
+num_goals_info <- function(link) {
+  
+  session <- bow(link)
+  
+  num_goals_info <- scrape(session) %>% 
+    html_nodes("td:nth-child(7)") %>% 
+    html_text()
+}
+
+num_assists_info <- function(link) {
+  
+  session <- bow(link)
+  
+  num_assists_info <- scrape(session) %>% 
+    html_nodes("td:nth-child(8)") %>% 
+    html_text()
+}
+
+# BIG FUNCTION
+
+jleague_stats_info <- function(link) {
+  
+  session <- bow(link)
+  
+  player_name_info <- scrape(session) %>% 
+    html_nodes("#yw1 .bilderrahmen-fixed") %>% 
+  html_attr("title") 
+
+  num_goals_info <- scrape(session) %>% 
+    html_nodes("td:nth-child(7)") %>% 
+    html_text()
+
+  num_assists_info <- scrape(session) %>% 
+    html_nodes("td:nth-child(8)") %>% 
+    html_text()
+  
+  resultados <- list(player_name_info, num_goals_info, num_assists_info)
+  col_names <- c("name", "goals", "assists") 
+  
+  jleague_stats <- resultados %>% 
+    reduce(cbind) %>% 
+    as_tibble() %>% 
+    set_names(col_names)
+  
+}
+
+
+# all together:
+# just 3 teams for now...
+goal_contribution_df <- map(team_links_df$link[1:3], jleague_stats_info)
+# mutate .y as team name
+
+  #mutate(player_names = map(team_links_df$link, player_name_info) %>% unlist)
+
+saveRDS(goal_contribution_df, file = glue("{here::here()}/data/goal_contrib3_df.RDS"))
 ```
 
