@@ -24,7 +24,9 @@ pacman::p_load(tidyverse, polite, scales, ggimage, rvest, glue, extrafont, ggrep
 loadfonts()
 ```
 
-# scrape
+# just FC Tokyo
+
+## scrape
 
 ```{r}
 url <- "https://www.transfermarkt.com/fc-tokyo/leistungsdaten/verein/6631/reldata/JAP1%262017/plus/1"
@@ -57,7 +59,11 @@ num_assists <- scrape(session) %>%
 
 resultados <- list(player_name, num_goals, num_assists)
 col_names <- c("name", "goals", "assists")
+```
 
+## clean/tidy
+
+```{r}
 fctokyo_results <- resultados %>% 
   reduce(cbind) %>% 
   as_tibble() %>% 
@@ -70,6 +76,11 @@ fctokyo_df <- fctokyo_results %>%
          goal_contrib = goals/total_goals,
          assist_contrib = assists/total_goals)
 
+```
+
+## plot
+
+```{r}
 fctokyo_plot <- fctokyo_df %>% 
   ggplot(aes(assist_contrib, goal_contrib)) +
   geom_point() +
@@ -152,6 +163,7 @@ add_logo(plot_path = glue("{here::here()}/J-League 2018/fctokyo_plot.png"),
 
 # all teams 
 
+## scrape
 
 ```{r}
 # #yw1 > table:nth-child(2) > tbody:nth-child(3) > tr:nth-child(1) > td:nth-child(2) > a:nth-child(1)
@@ -230,11 +242,41 @@ jleague_stats_info <- function(link) {
 
 # all together:
 # just 3 teams for now...
-goal_contribution_df <- map(team_links_df$link[1:3], jleague_stats_info)
+goal_contribution_df <- map2(.x = team_links_df$link[1:3], .y = team_links_df$team_name[1:3],
+                             ~ jleague_stats_info(link = .x) %>% 
+                               set_names(., nm = seq_along(.y)))
 # mutate .y as team name
 
-  #mutate(player_names = map(team_links_df$link, player_name_info) %>% unlist)
+goal_contribution_df <- map(team_links_df$link[1:3], ~ jleague_stats_info) %>% 
+  set_names(team_links_df$team_name[1:3])
 
-saveRDS(goal_contribution_df, file = glue("{here::here()}/data/goal_contrib3_df.RDS"))
+# YES
+the_big_data <- team_links_df[1:3,] %>% 
+  ## map each team URL link to the data-getting function
+  mutate(data = map(team_links_df$link[1:3], ~ jleague_stats_info(.x))) %>% 
+  ## set names of each data list to team name
+  mutate(data = data %>% set_names(team_links_df$team_name[1:3]))
+
+the_big_data2$data$`vissel-kobe`$goals
+
+# clean/tidy each team data list-column
+the_big_data2 %>% 
+  mutate(data = map(data, ~ .x %>% 
+                      mutate_at(.vars = c("goals", "assists"), 
+                                ~str_replace(., "-", "0") %>% as.numeric) %>% 
+                      mutate(total_goals = sum(goals),
+                             total_assists = sum(assists),
+                             goal_contrib = goals/total_goals,
+                             assist_contrib = assists/total_goals))) -> big_data3
+
+big_data3$data
+
+
+## save
+saveRDS(goal_contribution_df, file = glue("{here::here()}/data/goal_contrib_df.RDS"))
 ```
 
+
+
+- `mutate()` in similar way inside list >>> separate out and save each as separate dataframe
+- make ggplot function >>> inputs: colors, team name in title
