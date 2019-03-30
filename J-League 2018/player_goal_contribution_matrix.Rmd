@@ -20,7 +20,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # pkgs
 
 ```{r, message=FALSE, warning=FALSE}
-pacman::p_load(tidyverse, polite, scales, ggimage, rvest, glue, extrafont, ggrepel)
+pacman::p_load(tidyverse, polite, scales, ggimage, 
+               rvest, glue, extrafont, ggrepel, magick)
 loadfonts()
 ```
 
@@ -147,6 +148,21 @@ add_logo <- function(plot_path, logo_path, logo_position, logo_scale = 10){
     # Compose the actual overlay
     magick::image_composite(plot, logo, offset = paste0("+", x_pos, "+", y_pos))
 
+}
+```
+
+## tategaki function
+
+```{r}
+tategaki <- function(x){
+  x <- chartr("ー", "丨", x) # 長音符の処理
+  x <- strsplit(split="", x)
+  sapply(x, paste, collapse="\n")
+}
+
+tategaki_alt <- function(x){
+  x <- stringr::str_replace_all(x, "ー", "丨") # 長音符の処理
+  stringr::str_wrap(x, width = 1)
 }
 ```
 
@@ -288,6 +304,7 @@ goal_contribution_df <- resultados_grande %>%
 
 ## save
 saveRDS(goal_contribution_df, file = glue("{here::here()}/data/goal_contrib_df.RDS"))
+goal_contribution_df <- readRDS(file = glue("{here::here()}/data/goal_contrib_df.RDS"))
 ```
 
 ```{r Miscellaneous}
@@ -355,6 +372,15 @@ goal_contribution_clean_df %>%
             mean_assists = mean(total_assists),
             median_goals_contrib = median(goal_contrib),
             median_assists_contrib = median(assist_contrib))
+
+goal_contribution_clean_df %>% 
+  summarize(iqr_goals = quantile(goal_contrib)[4],
+         iqr_assists = quantile(assist_contrib)[4])
+
+goal_contribution_clean_df %>% 
+  ggplot(aes(goal_contrib)) +
+  geom_histogram() +
+  geom_vline(xintercept = quantile(goal_contribution_clean_df$goal_contrib)[4])
 ```
 
 - numbers mostly 0s (defenders, goalkeepers, etc.) >>> positive skew
@@ -363,29 +389,116 @@ goal_contribution_clean_df %>%
 
 ## plot
 
-```{r}  
+```{r fig.width = 10, fig.height = 8}  
 goal_contribution_clean_df %>% 
   ggplot(aes(assist_contrib, goal_contrib)) +
-  geom_point() +
-  gghighlight::gghighlight(goal_contrib > 0.25 | assist_contrib > 0.15,
-                           label_key = name, 
-                           label_params = list(size = 3.5)) +
-  # geom_text_repel(data = goal_contribution_clean_df %>% 
-  #                   filter(goal_contrib > 0.25 | assist_contrib > 0.15),
-  #                 aes(label = name),
-  #                 size = 3.5) +
-  guides(color = "none") +
-  scale_x_continuous(labels = percent) +
-  scale_y_continuous(labels = percent) +
+  geom_point(data = goal_contribution_clean_df %>%
+                    filter(goal_contrib < 0.25 | assist_contrib < 0.15),
+             color = "grey20", size = 4, alpha = 0.2) +
+  geom_point(data = goal_contribution_clean_df %>%
+                    filter(goal_contrib > 0.25 | assist_contrib > 0.15),
+             color = "red", size = 4) +
+  geom_hline(yintercept = 0.25, color = "grey20", alpha = 0.4) +
+  geom_vline(xintercept = 0.15, color = "grey20", alpha = 0.4) +
+  # gghighlight::gghighlight(goal_contrib > 0.25 | assist_contrib > 0.15,
+  #                          label_key = name, 
+  #                          label_params = list(size = 3.5)) +
+  geom_text_repel(data = goal_contribution_clean_df %>%
+                    filter(goal_contrib > 0.25 | assist_contrib > 0.15),
+                  aes(label = name, family = "Roboto Condensed", fontface = "bold"), 
+                  seed = 7, size = 5, 
+                  min.segment.length = 0, segment.color = "red",
+                  point.padding = 0.5) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), 
+                     breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3),
+                     limits = c(0, 0.3)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), 
+                     breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+                     limits = c(0, 0.5)) +
   labs(title = "Team Goal Involvement as Percentage of Total Club Goals",
-       subtitle = "J-League 2018 Season",
+       subtitle = "J.League 2018 Season",
        caption = glue("
-                      Data: transfermarkt
+                      Data: transfermarkt.com
                       By: @R_by_Ryo"),
        x = "Percentage of Club Goals Assisted",
        y = "Percentage of Club Goals Scored") +
-  theme_minimal()
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 20),
+        plot.subtitle = element_text(size = 18),
+        plot.caption = element_text(size = 8),
+        axis.title = element_text(size = 15),
+        axis.text = element_text(size = 14),
+        panel.grid.minor.x = element_blank()) -> goal_contribution_matrix
 ```
 
 - gghighlight with geom_text_repel() instead??? PR?
 - contribution score: goals + assist / 2 ?
+- in Japanese: 得点貢献度
+
+
+```{r fig.width = 10, fig.height = 8}  
+goal_contribution_clean_df %>% 
+  ggplot(aes(assist_contrib, goal_contrib)) +
+  geom_point(data = goal_contribution_clean_df %>%
+                    filter(goal_contrib < 0.25 | assist_contrib < 0.15),
+             color = "grey20", size = 4, alpha = 0.2) +
+  geom_point(data = goal_contribution_clean_df %>%
+                    filter(goal_contrib > 0.25 | assist_contrib > 0.15),
+             color = "red", size = 4) +
+  geom_hline(yintercept = 0.25, color = "grey20", alpha = 0.4) +
+  geom_vline(xintercept = 0.15, color = "grey20", alpha = 0.4) +
+  geom_text_repel(data = goal_contribution_clean_df %>%
+                    filter(goal_contrib > 0.25 | assist_contrib > 0.15),
+                  aes(label = name, family = "Roboto Condensed", fontface = "bold"), 
+                  seed = 7, size = 5, 
+                  min.segment.length = 0, segment.color = "red",
+                  point.padding = 0.5) +
+  scale_x_continuous(labels = percent_format(accuracy = 1), 
+                     breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3),
+                     limits = c(0, 0.3)) +
+  scale_y_continuous(labels = percent_format(accuracy = 1), 
+                     breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
+                     limits = c(0, 0.5)) +
+  labs(title = "得点貢献度 (各チームのゴール・アシスト割合)",
+       subtitle = "J.League 2018 シーズン",
+       caption = glue("
+                      データ: transfermarkt.com
+                      作: @R_by_Ryo"),
+       x = "アシスト割合",
+       y = tategaki_alt("ゴール割合")) +
+  theme_minimal() +
+  theme(text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 20),
+        plot.subtitle = element_text(size = 18),
+        plot.caption = element_text(size = 8),
+        axis.title = element_text(size = 15),
+        axis.title.y = element_text(angle = 0, vjust= 0.5),
+        axis.text = element_text(size = 14),
+        panel.grid.minor.x = element_blank()) -> goal_contribution_matrix_jp
+```
+
+
+
+```{r}
+ggsave(plot = goal_contribution_matrix_jp, 
+       "../J-League 2018/output/goal_contribution_matrix_plot_jp.png",
+       height = 8, width = 10)
+```
+
+
+
+```{r}
+plot_logo <- add_logo(
+  plot_path = "../J-League 2018/output/goal_contribution_matrix_plot_jp.png",
+  logo_path = "https://upload.wikimedia.org/wikipedia/en/3/31/J.League_%28local%29.png",
+  logo_position = "top right",
+  logo_scale = 18)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, 
+            "../J-League 2018/output/goal_contribution_matrix_plot_jp_logo.png")
+```

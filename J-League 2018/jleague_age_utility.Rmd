@@ -243,6 +243,64 @@ plot_logo
 image_write(image = plot_logo, "../J-League 2018/output/kobe_logo_plot.png")
 ```
 
+### english version
+
+```{r fig.height=6, fig.width=8}
+kobe_minutes %>% 
+  ggplot(aes(x = age, y = min_perc)) +
+  geom_vline(xintercept = 25, alpha = 0.4, color = "grey20") +
+  geom_hline(yintercept = 0.5, alpha = 0.4, color = "grey20") +
+  geom_mark_rect(aes(filter = age >= 26 & age <= 31), 
+                 description = "Prime Age*", con.cap = 0,
+                 color = NA,　fill = "firebrick1", alpha = 0.5) + 
+  geom_point(color = "darkred", size = 2.5) +
+  geom_text_repel(
+    aes(label = last_name, family = "Roboto Condensed"),
+    nudge_x = 0.5,
+    seed = 6) + 
+  scale_y_continuous(
+    expand = c(0.01, 0),
+    limits = c(0, 1), 
+    labels = percent_format()) +
+  scale_x_continuous(
+    breaks = pretty_breaks(n = 10)) +
+  labs(
+    x = "Current Age (As of March 30, 2019)", 
+    y = "% of Minutes Played",  
+    title = "Vissel Kobe: Age-Utility Matrix",
+    subtitle = "J-League 2018 Season (100% = 3060 minutes)",
+    caption = glue("
+                   Data: transfermarkt.com
+                   *Subjective
+                   Created by: @R_by_Ryo"))  +
+  theme_bw() +
+  theme(
+    text = element_text(family = "Roboto Condensed"),
+    plot.title = element_text(color = "darkred", size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 14),
+    #axis.title.y = element_text(angle = 0, vjust= 0.5),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12),
+    panel.border = element_rect(color = "darkred", size = 1.25)) -> kobe_plot_eng
+```
+
+```{r}
+ggsave(plot = kobe_plot_eng, "../J-League 2018/output/kobe_plotENG.png",
+       height = 6, width = 8)
+```
+
+```{r}
+plot_logo <- add_logo(plot_path = "../J-League 2018/output/kobe_plotENG.png",
+                      logo_path = "https://upload.wikimedia.org/wikipedia/en/8/87/VisselKobe.png",
+                      logo_position = "top right",
+                      logo_scale = 20)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, "../J-League 2018/output/kobe_logo_plotENG.png")
+```
 
 
 # FC Tokyo
@@ -690,3 +748,67 @@ plot_logo
 image_write(image = plot_logo, "../J-League 2018/output/shimizu_logo_plot.png")
 ```
 
+### english version
+
+
+```{r fig.height=6, fig.width=8}
+shimizu_minutes %>% 
+  ggplot(aes(x = age, y = min_perc)) +
+  geom_vline(xintercept = 25, alpha = 0.4, color = "grey20") +
+  geom_hline(yintercept = 0.5, alpha = 0.4, color = "grey20") +
+  geom_mark_rect(aes(filter = age >= 26 & age <= 31), 
+                 description = "Prime Age*", con.cap = 0,
+                 color = NA, fill = "#F29900", alpha = 0.5, size = 0.01) +
+  geom_point(color = "#0569AE", size = 2.5) +
+  geom_text_repel(
+    aes(label = last_name, family = "Roboto Condensed"),
+    nudge_x = 0.5,
+    seed = 6) + 
+  scale_y_continuous(
+    expand = c(0.01, 0),
+    limits = c(0, 1.05), 
+    labels = percent_format()) +
+  scale_x_continuous(
+    breaks = pretty_breaks(n = 10)) +
+  labs(
+    x = "Current Age (As of March 30, 2019)", 
+    y = "% of Minutes Played", 
+    title = "Shimizu S-Pulse: Age-Utility Matrix",
+    subtitle = "J-League 2018 Season (100% = 3060 minutes)",
+    caption = glue("
+                   *Subjective
+                   Data: transfermarkt.com
+                   Created by: @R_by_Ryo")) +
+  theme_bw() +
+  theme(
+    text = element_text(family = "Roboto Condensed"),
+    panel.border = element_rect(color = "#F29900", size = 1.25),
+    plot.title = element_text(color = "#F29900", size = 16, face = "bold"),
+    plot.subtitle = element_text(color = "#0569AE", size = 14),
+    #axis.title.y = element_text(angle = 0, vjust= 0.5),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 12)) -> shimizu_plot_eng
+```
+
+
+
+
+```{r}
+ggsave(plot = shimizu_plot_eng, "../J-League 2018/output/shimizu_plotENG.png",
+       height = 6, width = 8)
+```
+
+
+
+```{r}
+plot_logo <- add_logo(plot_path = "../J-League 2018/output/shimizu_plotENG.png",
+                      logo_path = "https://upload.wikimedia.org/wikipedia/en/4/4c/ShimizuS-Pulse.png",
+                      logo_position = "top right",
+                      logo_scale = 20)
+
+plot_logo
+```
+
+```{r}
+image_write(image = plot_logo, "../J-League 2018/output/shimizu_logo_plotENG.png")
+```
