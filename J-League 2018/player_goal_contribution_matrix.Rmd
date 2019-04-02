@@ -356,6 +356,11 @@ goal_contribution_clean_df <- goal_contribution_df %>%
          goal_contrib = goals/total_goals,
          assist_contrib = assists/total_goals) %>% 
   ungroup()
+
+## save
+saveRDS(goal_contribution_clean_df, 
+        file = glue("{here::here()}/data/goal_contrib_clean_df.RDS"))
+goal_contribution_clean_df <- readRDS(file = glue("{here::here()}/data/goal_contrib_clean_df.RDS"))
 ```
 
 ```{r}
@@ -460,7 +465,7 @@ goal_contribution_clean_df %>%
   scale_y_continuous(labels = percent_format(accuracy = 1), 
                      breaks = c(0, 0.1, 0.2, 0.3, 0.4, 0.5),
                      limits = c(0, 0.5)) +
-  labs(title = "得点貢献度 (各チームのゴール・アシスト割合)",
+  labs(title = "得点貢献度 (チームのゴール・アシスト割合)",
        subtitle = "J.League 2018 シーズン",
        caption = glue("
                       データ: transfermarkt.com
