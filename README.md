@@ -1,5 +1,7 @@
 ## Re-create goals, stats viz, etc. from the World Cup and beyond. (Using ggplot2, ggsoccer, and more)
 
+[Ryo Nakagawara | Twitter: `@R_by_Ryo`](https://twitter.com/R_by_Ryo)
+
 ### Asian Cup 2019 blog post:
 - [Visualizing the Asian Cup!](https://ryo-n7.github.io/2019-01-11-visualize-asian-cup/)
 
@@ -19,6 +21,7 @@
 - Asian Cup Top Scorers: [Gist](https://gist.github.com/Ryo-N7/4b7bbe0d32a4d45e68f20e359a01ff0d)
 - Asian Cup Winners: [Gist](https://gist.github.com/Ryo-N7/4b7bbe0d32a4d45e68f20e359a01ff0d)
 - J.League 2018 得点貢献度: [Gist](https://gist.github.com/Ryo-N7/7912a8b7160a189aa03166e5532e4e71)
+- Goal-Contribution Matrix (Premier League 2018-2019 Season): [Gist]()
 
 ### Tokyo.R Presentation (July 2018):
 - [Tokyo.R Presentation](http://rpubs.com/Ryo-N7/visualize_world_cup_with_R)
@@ -32,8 +35,8 @@
 ## First Goal of the World Cup: Yuri Gazinsky
 ![](https://i.imgur.com/GqNHFPl.gif)
 
-## J.League 2018 Season: Goal Contribution Matrix
-![](https://i.imgur.com/Jmp57gL.png)
+## Premier League 2018-2019 Season: Goal-Contribution Matrix
+![](https://i.imgur.com/caJhjr3.png)
 
 ## Jürgen Klopp's Managerial History
 ![](https://i.imgur.com/Xcw2nAK.png)
@@ -43,6 +46,9 @@
 
 ## Cristiano Ronaldo's hattrick vs. Spain:
 ![](https://i.imgur.com/iFFOotS.png)
+
+## J.League 2018 Season: Goal Contribution Matrix
+![](https://i.imgur.com/Jmp57gL.png)
 
 ## Group D Final Matchday Table:
 ![](https://i.imgur.com/FlntjgH.png)
